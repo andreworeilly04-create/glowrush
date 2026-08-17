@@ -1,19 +1,16 @@
 "use client";
 import { glowsticks } from "@/data/glowsticks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCartShopping, faUser, faStar, faStarHalfAlt, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faStar, faStarHalfAlt } from "@fortawesome/free-solid-svg-icons";
 import { faStar as faRegularStar } from '@fortawesome/free-regular-svg-icons';
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import styles from "./page.module.css";
-import logo from "../../public/glowrush_logo.png";
+import "@fortawesome/fontawesome-svg-core/styles.css";
 import { useState, useEffect } from "react";
 
 export default function HomePage() {
-  const pathname = usePathname();
   const [randomGlowsticks, setRandomGlowsticks] = useState<any[]>([]);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const shuffled = [...glowsticks].sort(() => Math.random() - 0.5);
@@ -22,105 +19,7 @@ export default function HomePage() {
 
   return (
     <>
-      <header className={styles.header} id="home">
-        <figure className={styles.logo_container}>
-          <Image src={logo} className={styles.logo} alt="GlowRush Logo" priority />
-        </figure>
-        <nav className={styles.nav_menu}>
-          <ul className={styles.nav_links}>
-            <li className={styles.nav_link}>
-              <Link
-                href="#home"
-                className={`${styles.nav_link} ${pathname === "/" ? styles.active : ""}`}
-              >
-                Home
-              </Link>
-            </li>
-            <li className={styles.nav_link}>
-              <Link
-                href="#glowsticks"
-                className={`${styles.nav_link} ${pathname === "/glowsticks" ? styles.active : ""}`}
-              >
-                Glow Sticks
-              </Link>
-            </li>
-            <li className={styles.nav_link}>
-              <Link
-                href="#about"
-                className={`${styles.nav_link} ${pathname === "/about" ? styles.active : ""}`}
-              >
-                About
-              </Link>
-            </li>
-            <li className={styles.nav_link}>
-              <Link
-                href="#contact"
-                className={`${styles.nav_link} ${pathname === "/contact" ? styles.active : ""}`}
-              >
-                Contact
-              </Link>
-            </li>
-          </ul>
-        </nav>
-        <div className={styles.nav_icons_wrapper}>
-          <ul className={styles.nav_icons}>
-            <li className={styles.nav_user}>
-              <FontAwesomeIcon icon={faUser} />
-            </li>
-            <li className={styles.nav_cart}>
-              <FontAwesomeIcon icon={faCartShopping} />
-              <span className={styles.cart_badge}>3</span>
-            </li>
-          </ul>
-          <button 
-            className={styles.menu_toggle} 
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle Menu"
-          >
-            <FontAwesomeIcon icon={menuOpen ? faTimes : faBars} />
-          </button>
-        </div>
-        <div className={`${styles.mobile_menu} ${menuOpen ? styles.mobile_menu_open : ""}`}>
-          <ul className={styles.mobile_nav_links}>
-            <li>
-              <Link
-                href="#home"
-                onClick={() => setMenuOpen(false)}
-                className={`${styles.mobile_nav_link} ${pathname === "/" ? styles.active : ""}`}
-              >
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#glowsticks"
-                onClick={() => setMenuOpen(false)}
-                className={`${styles.mobile_nav_link} ${pathname === "/glowsticks" ? styles.active : ""}`}
-              >
-                Glow Sticks
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#about"
-                onClick={() => setMenuOpen(false)}
-                className={`${styles.mobile_nav_link} ${pathname === "/about" ? styles.active : ""}`}
-              >
-                About
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#contact"
-                onClick={() => setMenuOpen(false)}
-                className={`${styles.mobile_nav_link} ${pathname === "/contact" ? styles.active : ""}`}
-              >
-                Contact
-              </Link>
-            </li>
-          </ul>
-        </div>
-      </header>
+      
       <main className={styles.hero_section}>
         <div className={styles.hero_content}>
           <div className={styles.hero_badge}>⚡ Ultimate Party Gear</div>
@@ -181,7 +80,13 @@ export default function HomePage() {
         <div className={styles.latest_glowsticks_product_container}>
             {randomGlowsticks.map((glowstick) => (
               <div key={glowstick.id} className={styles.glowstick_card}>
-                <Image className={styles.latest_glowsticks_image} src={glowstick.image} alt={glowstick.name} />
+                <Image 
+                  className={styles.latest_glowsticks_image} 
+                  src={glowstick.image} 
+                  alt={glowstick.name} 
+                  width={300} 
+                  height={300} 
+                />
                 <h3 className={styles.latest_glowsticks_product_name}>{glowstick.name}</h3>
                 <h4 className={styles.latest_glowsticks_product_price}>${glowstick.price}</h4>
                 <div className={styles.latest_glowsticks_product_rating}>
@@ -208,18 +113,7 @@ export default function HomePage() {
           <button type="submit" className={styles.newsletter_btn}>Subscribe</button>
         </form>
       </section>
-      <footer className={styles.footer}>
-        <figure className={styles.footer_logo_container}>
-          <Image src={logo} className={styles.footer_logo} alt="GlowRush Logo" />
-        </figure>
-        <div className={styles.footer_links}>
-          <Link href="#home" className={styles.footer_link}>Home</Link>
-          <Link href="#glowsticks" className={styles.footer_link}>Glow Sticks</Link>
-          <Link href="#about" className={styles.footer_link}>About</Link>
-          <Link href="#contact" className={styles.footer_link}>Contact</Link>
-        </div>
-        <p className={styles.footer_text}>Copyright 2026 GlowRush All rights reserved</p>
-      </footer>
+     
     </>
   );
 }

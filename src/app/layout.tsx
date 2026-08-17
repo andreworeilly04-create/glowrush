@@ -1,25 +1,32 @@
-import type { Metadata } from "next"
+
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { config } from "@fortawesome/fontawesome-svg-core"
+import { config } from "@fortawesome/fontawesome-svg-core";
 config.autoAddCss = false;
 import "./globals.css";
-import "@fortawesome/fontawesome-svg-core/styles.css"
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 
-const inter = Inter({ subsets: ["latin"]})
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title:"GlowRush"
-}
+  title: "GlowRush",
+};
 
 export default function RootLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
-
+  children: React.ReactNode;
 }) {
-    return (
+  
+  return (
+   
         <html lang="en">
-            <body>{children}</body>
-            </html>
-    );
+          <body>
+          <Header />
+            {children}
+            <Footer />
+          </body>
+          </html>
+  );
 }
