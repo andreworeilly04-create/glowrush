@@ -30,9 +30,10 @@ import glowstick29 from './29-glow-shotgun-shells-12-gauge.png'
 import glowstick30 from './30-glow-slap-bracelets.png'
 import glowstick31 from './31-hanging-glow-lights.png'
 import glowstick32 from './32-glow-stick-3-pack.png'
+
 export type GlowStick = {
   id: number;
-  image:any;
+  image: any;
   name: string;
   category: string;
   price: number;
@@ -41,294 +42,301 @@ export type GlowStick = {
 };
 
 export const glowsticks: GlowStick[] = [
+  // --- Category: Glow Sticks (8 products) ---
   {
-    id:1,
-    name: "Classic Green Glow Stick",
-    category: "Classic",
+    id: 1,
+    name: "Multi-Color Classic Glow Stick Assortment",
+    category: "Glow Sticks",
     price: 1.99,
     rating: 4.8,
-    description: "Bright green 8-inch glow stick with a reliable long-lasting glow for parties and events.",
-    image:glowstick1
+    description: "A vibrant mix of traditional bright green, yellow, orange, red, and blue glow sticks designed for maximum brightness and long-lasting nighttime fun.",
+    image: glowstick1
   },
   {
-    id:2,
-    name: "Classic Blue Glow Stick",
-    category: "Classic",
-    price: 1.99,
-    rating: 4.7,
-    description: "Vibrant blue glow stick designed for parties, concerts, festivals, and nighttime events.",
-    image:glowstick2
-  },
-  {
-    id:3,
-    name: "Classic Red Glow Stick",
-    category: "Classic",
+    id: 3,
+    name: "Neon Rainbow Glow Sticks",
+    category: "Glow Sticks",
     price: 1.99,
     rating: 4.7,
-    description: "Bold red 8-inch glow stick that adds a bright pop of color to any celebration.",
-    image:glowstick3
+    description: "A dazzling transition of vivid red, orange, green, and pink tones arranged in a brilliant rainbow spectrum.",
+    image: glowstick3
   },
   {
-    id:4,
-    name: "Classic Pink Glow Stick",
-    category: "Classic",
-    price: 1.99,
-    rating: 4.8,
-    description: "Fun pink glow stick with a bright, colorful glow for parties and celebrations.",
-    image:glowstick4
-  },
-  {
-    id:5,
-    name: "Rainbow Glow Stick",
-    category: "Colorful",
-    price: 2.49,
-    rating: 4.9,
-    description: "Multicolor glow stick featuring a vibrant rainbow effect for an eye-catching look.",
-    image:glowstick5
-  },
-  {
-    id:6,
-    name: "Color-Changing Glow Stick",
-    category: "Colorful",
-    price: 2.99,
-    rating: 4.8,
-    description: "Glow stick that shifts through multiple colors for a dynamic nighttime display.",
-    image:glowstick6,
-  },
-  {
-    id:7,
-    name: "Ultra Bright Green",
-    category: "Ultra Bright",
-    price: 2.79,
-    rating: 4.9,
-    description: "Extra-bright green glow stick made for maximum visibility at festivals and large events.",
-    image:glowstick7,
-  },
-  {
-    id:8,
-    name: "Ultra Bright Blue",
-    category: "Ultra Bright",
-    price: 2.79,
-    rating: 4.8,
-    description: "High-intensity blue glow stick with a powerful glow that stands out in the dark.",
-    image:glowstick8,
-  },
-  {
-    id:9,
-    name: "Ultra Bright Orange",
-    category: "Ultra Bright",
-    price: 2.79,
-    rating: 4.8,
-    description: "High-visibility orange glow stick perfect for energetic parties and outdoor events.",
-    image:glowstick9
-  },
-  {
-    id:10,
-    name: "Jumbo 12-Inch Glow Stick",
-    category: "Jumbo",
-    price: 3.49,
-    rating: 4.9,
-    description: "Oversized 12-inch glow stick delivering a larger, more noticeable glow.",
-    image:glowstick10,
-  },
-  {
-    id:11,
-    name: "Jumbo Green Glow Stick",
-    category: "Jumbo",
+    id: 11,
+    name: "Classic Thin Glow Sticks (Assorted Colors)",
+    category: "Glow Sticks",
     price: 3.49,
     rating: 4.8,
-    description: "Large green glow stick designed for standout illumination at events and celebrations.",
-    image:glowstick11,
+    description: "Standard slim-profile glow sticks in a mix of vibrant neon colors for high-visibility fun.",
+    image: glowstick11
   },
   {
-    id:12,
-    name: "Jumbo Blue Glow Stick",
-    category: "Jumbo",
-    price: 3.49,
-    rating: 4.8,
-    description: "Extra-large blue glow stick with a bright appearance and extended event presence.",
-    image:glowstick12,
-  },
-  {
-    id:13,
-    name: "Glow Stick Bracelet",
-    category: "Wearable",
-    price: 1.49,
-    rating: 4.7,
-    description: "Flexible glow bracelet that easily bends into a wearable accessory for parties.",
-    image:glowstick13,
-  },
-  {
-    id:14,
-    name: "Glow Stick Necklace",
-    category: "Wearable",
-    price: 1.99,
-    rating: 4.8,
-    description: "Wearable glow necklace that adds a colorful illuminated accessory to any outfit.",
-    image:glowstick14,
-  },
-  {
-    id:15,
-    name: "Glow Stick Glasses",
-    category: "Wearable",
-    price: 4.99,
-    rating: 4.9,
-    description: "Fun glowing glasses designed to make party outfits stand out under low light.",
-    image:glowstick15,
-  },
-  {
-    id:16,
-    name: "Glow Stick Headband",
-    category: "Wearable",
-    price: 3.99,
-    rating: 4.7,
-    description: "Flexible glowing headband that adds a playful illuminated touch to party looks.",
-    image:glowstick16,
-  },
-  {
-    id:17,
-    name: "Mini Glow Sticks 4-Pack",
-    category: "Mini",
+    id: 17,
+    name: "Mixed Glow Stick Assortment",
+    category: "Glow Sticks",
     price: 2.49,
     rating: 4.6,
-    description: "Four compact glow sticks that are easy to hand out as party favors or accessories.",
-    image:glowstick17,
+    description: "A vibrant assortment of standard multicolored glow sticks scattered across a dark surface for evening events.",
+    image: glowstick17
   },
   {
-    id:18,
-    name: "Mini Glow Sticks 10-Pack",
-    category: "Mini",
+    id: 28,
+    name: "Classic Neon Glow Bracelets",
+    category: "Glow Sticks",
+    price: 2.49,
+    rating: 4.6,
+    description: "Flexible, bendable colorful bracelets that loop comfortably around the wrist to light up parties and concerts.",
+    image: glowstick28
+  },
+  {
+    id: 29,
+    name: "Standard Glow Sticks Assortment",
+    category: "Glow Sticks",
+    price: 3.99,
+    rating: 4.8,
+    description: "A vibrant lineup of classic multi-color glow sticks standing upright for high-visibility party and event fun.",
+    image: glowstick29
+  },
+  {
+    id: 30,
+    name: "Rainbow Glow Stick Lineup",
+    category: "Glow Sticks",
+    price: 2.99,
+    rating: 4.7,
+    description: "A bright, colorful assortment of slim neon glow sticks aligned in a full spectrum of shades.",
+    image: glowstick30
+  },
+  {
+    id: 31,
+    name: "Textured Glow Sticks Assortment",
+    category: "Glow Sticks",
+    price: 12.99,
+    rating: 4.9,
+    description: "A selection of textured, high-visibility multi-color glow tubes designed for nighttime visibility and events.",
+    image: glowstick31
+  },
+
+  // --- Category: Wearable Glow Accessories (8 products) ---
+  {
+    id: 4,
+    name: "Flexible Neon Glow Strings / Wavy Glow Lines",
+    category: "Wearable Glow Accessories",
+    price: 1.99,
+    rating: 4.8,
+    description: "Thin, highly flexible, and bendable neon glowing filaments that can be shaped into custom curves and unique decorative lines.",
+    image: glowstick4
+  },
+  {
+    id: 5,
+    name: "Rainbow Glow Bracelets / Necklaces",
+    category: "Wearable Glow Accessories",
+    price: 2.49,
+    rating: 4.9,
+    description: "Flexible, vibrant multi-colored bendable sticks linked into circular loops to wear as bright party bracelets or necklaces.",
+    image: glowstick5
+  },
+  {
+    id: 6,
+    name: "Mesh Textured Glow Bracelets",
+    category: "Wearable Glow Accessories",
+    price: 2.99,
+    rating: 4.8,
+    description: "Multi-toned textured mesh bands designed to shift and display a spectrum of brilliant colors for nighttime events.",
+    image: glowstick6
+  },
+  {
+    id: 8,
+    name: "Neon Shutter Shades",
+    category: "Wearable Glow Accessories",
+    price: 2.79,
+    rating: 4.8,
+    description: "High-visibility glowing novelty shutter shade glasses featuring a vibrant neon frame for parties, concerts, and raves.",
+    image: glowstick8
+  },
+  {
+    id: 9,
+    name: "Glow Bunny Ears / Headband",
+    category: "Wearable Glow Accessories",
+    price: 2.79,
+    rating: 4.8,
+    description: "Fun, bendable glowing headband accessories shaped like bunny or animal ears, perfect for parties and festivals.",
+    image: glowstick9
+  },
+  {
+    id: 10,
+    name: "LED Glow Rings / Diamond Glow Rings",
+    category: "Wearable Glow Accessories",
+    price: 3.49,
+    rating: 4.9,
+    description: "Large, flashing novelty rings featuring bright gem-shaped tops that light up for evening events.",
+    image: glowstick10
+  },
+  {
+    id: 15,
+    name: "Mini Glow Sticks / Lanyard Glow Sticks",
+    category: "Wearable Glow Accessories",
+    price: 4.99,
+    rating: 4.9,
+    description: "Short, compact mini glow sticks equipped with hanging top loops, perfect for wearing as pendants or attaching to gear.",
+    image: glowstick15
+  },
+  {
+    id: 26,
+    name: "Glow Stick Lanyards / Necklaces with Connectors",
+    category: "Wearable Glow Accessories",
+    price: 3.49,
+    rating: 4.9,
+    description: "Thin, flexible glow sticks attached to string lanyards designed to be worn easily around the neck at events.",
+    image: glowstick26
+  },
+
+  // --- Category: Bulk Party Supplies (8 products) ---
+  {
+    id: 20,
+    name: "Multi-Color Bulk Glow Stick Bundle",
+    category: "Bulk Party Supplies",
+    price: 14.99,
+    rating: 4.9,
+    description: "A massive, tightly bound fan of vibrant neon glow sticks featuring a full rainbow spectrum of colors.",
+    image: glowstick20
+  },
+  {
+    id: 21,
+    name: "Festival Glow Stick Bucket",
+    category: "Bulk Party Supplies",
+    price: 19.99,
+    rating: 4.9,
+    description: "A large black container packed full of vibrant, multi-colored neon glow sticks designed for festivals and large events.",
+    image: glowstick21
+  },
+  {
+    id: 22,
+    name: "Neon Glow Stick Display Box",
+    category: "Bulk Party Supplies",
+    price: 24.99,
+    rating: 4.8,
+    description: "An open display box featuring organized rows of brightly glowing, textured multi-color glow sticks.",
+    image: glowstick22
+  },
+  {
+    id: 23,
+    name: "Mixed Glow Stick & Accessory Kit",
+    category: "Bulk Party Supplies",
+    price: 17.99,
+    rating: 4.7,
+    description: "A comprehensive mix of glowing items, including standard glow sticks, coiled bracelets, and connectors for celebrations.",
+    image: glowstick23
+  },
+  {
+    id: 24,
+    name: "Bulk Glitter Glow Stick Box",
+    category: "Bulk Party Supplies",
+    price: 2.99,
+    rating: 4.7,
+    description: "A cardboard display box filled with a dense bundle of textured glitter-style glow sticks in a rainbow of bright colors.",
+    image: glowstick24
+  },
+  {
+    id: 32,
+    name: "Thick Mega Glow Sticks",
+    category: "Bulk Party Supplies",
+    price: 3.99,
+    rating: 5.0,
+    description: "Extra-thick, bright neon glow sticks providing powerful illumination for parties and outdoor gatherings.",
+    image: glowstick32
+  },
+  {
+    id: 2,
+    name: "Glitter Glow Tubes Assortment",
+    category: "Bulk Party Supplies",
+    price: 1.99,
+    rating: 4.7,
+    description: "Eye-catching, textured glow tubes packed with sparkling glitter details across a multi-color spectrum for an extra shimmering effect.",
+    image: glowstick2
+  },
+  {
+    id: 12,
+    name: "Jumbo Foam Glow Batons / Multi-Color Glow Sticks",
+    category: "Bulk Party Supplies",
+    price: 3.49,
+    rating: 4.8,
+    description: "Extra-large, thick glow sticks featuring a bright gradient color spectrum for maximum visibility.",
+    image: glowstick12
+  },
+
+  // --- Category: Special Effects & Gear (8 products) ---
+  {
+    id: 7,
+    name: "Glow Stick Connectors & Adapters",
+    category: "Special Effects & Gear",
+    price: 2.79,
+    rating: 4.9,
+    description: "Transparent modular connector pieces used to link and build custom structures, shapes, or giant loops out of standard glow sticks.",
+    image: glowstick7
+  },
+  {
+    id: 13,
+    name: "Flower Glow Stick Assembly / Shape",
+    category: "Special Effects & Gear",
+    price: 1.49,
+    rating: 4.7,
+    description: "Flexible glow sticks arranged and connected into an intricate, decorative flower shape for parties and evening fun.",
+    image: glowstick13
+  },
+  {
+    id: 14,
+    name: "Glowing Bouncing Balls / LED Balls",
+    category: "Special Effects & Gear",
+    price: 1.99,
+    rating: 4.8,
+    description: "Smooth, colorful spheres that illuminate brightly, designed for fun nighttime games and sensory play.",
+    image: glowstick14
+  },
+  {
+    id: 16,
+    name: "Glow Stick Holder / Storage Station",
+    category: "Special Effects & Gear",
+    price: 3.99,
+    rating: 4.7,
+    description: "A vertical upright container holding bundled bright neon glow sticks, keeping them organized and ready for distribution.",
+    image: glowstick16
+  },
+  {
+    id: 18,
+    name: "Orange Industrial Glow Sticks Bundle",
+    category: "Special Effects & Gear",
     price: 4.99,
     rating: 4.8,
     description: "Ten colorful mini glow sticks ideal for party favors, games, and group activities.",
-    image:glowstick18,
+    image: glowstick18
   },
   {
-    id:19,
-    name: "Mini Glow Sticks 25-Pack",
-    category: "Mini",
+    id: 19,
+    name: "Green Glow Foam Sticks / Novelty Wands",
+    category: "Special Effects & Gear",
     price: 9.99,
     rating: 4.9,
-    description: "Value pack of 25 mini glow sticks for larger parties, events, and celebrations.",
-    image:glowstick19,
+    description: "Bright green illuminated foam wands equipped with specialized handles, perfect for concerts and night parties.",
+    image: glowstick19
   },
   {
-    id:20,
-    name: "Glow Stick Party Pack",
-    category: "Party Packs",
-    price: 14.99,
-    rating: 4.9,
-    description: "Mixed-color glow stick assortment packed for parties, birthdays, and group events.",
-    image:glowstick20,
-  },
-  {
-    id:21,
-    name: "Glow Stick Festival Pack",
-    category: "Party Packs",
-    price: 19.99,
-    rating: 4.9,
-    description: "Large assortment of colorful glow products built for festivals and nighttime gatherings.",
-    image:glowstick21,
-  },
-  {
-    id:22,
-    name: "Glow Stick Rave Pack",
-    category: "Party Packs",
-    price: 24.99,
-    rating: 4.8,
-    description: "Vibrant assortment of glow sticks and accessories made for rave and dance events.",
-    image:glowstick22,
-  },
-  {
-    id:23,
-    name: "Glow Stick Wedding Pack",
-    category: "Party Packs",
-    price: 17.99,
-    rating: 4.7,
-    description: "Elegant mix of glow accessories designed for receptions, send-offs, and nighttime weddings.",
-    image:glowstick23,
-  },
-  {
-    id:24,
-    name: "Glitter Glow Stick",
-    category: "Specialty",
-    price: 2.99,
-    rating: 4.7,
-    description: "Glow stick with a glitter-inspired look for extra visual flair at parties.",
-    image:glowstick24,
-  },
-  {
-    id:25,
-    name: "Sparkle Glow Wand",
-    category: "Specialty",
+    id: 25,
+    name: "Liquid Glitter Sensory Tubes",
+    category: "Special Effects & Gear",
     price: 3.99,
     rating: 4.8,
-    description: "Decorative glowing wand with a playful sparkle effect for celebrations and events.",
-    image:glowstick25,
+    description: "Transparent vertical tubes filled with swirling floating glitter and colorful liquid for a mesmerizing sensory experience.",
+    image: glowstick25
   },
   {
-    id:26,
-    name: "Super Long-Lasting Glow Stick",
-    category: "Long Lasting",
-    price: 3.49,
-    rating: 4.9,
-    description: "Long-duration glow stick designed to keep shining throughout extended events.",
-    image:glowstick26,
-  },
-  {
-    id:27,
-    name: "24-Hour Glow Stick",
-    category: "Long Lasting",
+    id: 27,
+    name: "Heavy-Duty Industrial Glow Sticks",
+    category: "Special Effects & Gear",
     price: 4.49,
     rating: 4.8,
-    description: "Extra-long-lasting glow stick made for overnight events, camping, and extended parties.",
-    image:glowstick27,
-  },
-  {
-    id:28,
-    name: "Eco Glow Bracelet",
-    category: "Eco-Friendly",
-    price: 2.49,
-    rating: 4.6,
-    description: "Eco-conscious glow bracelet option for customers looking for a more sustainable party accessory.",
-    image:glowstick28,
-  },
-  {
-    id:29,
-    name: "Glow Stick Safety Wand",
-    category: "Safety",
-    price: 3.99,
-    rating: 4.8,
-    description: "Bright illuminated wand designed to improve visibility at nighttime events and outdoor activities.",
-    image:glowstick29,
-  },
-  {
-    id:30,
-    name: "Glow Stick Fishing Float",
-    category: "Outdoor",
-    price: 2.99,
-    rating: 4.7,
-    description: "Compact glow stick designed to provide nighttime visibility for fishing and outdoor use.",
-    image:glowstick30,
-  },
-  {
-    id:31,
-    name: "Glow Stick Camping Pack",
-    category: "Outdoor",
-    price: 12.99,
-    rating: 4.9,
-    description: "Assorted glow sticks for camping, nighttime activities, and emergency visibility.",
-    image:glowstick31,
-  },
-  {
-    id:32,
-    name: "Neon Green Mega Glow Stick",
-    category: "Neon",
-    price: 3.99,
-    rating: 5.0,
-    description: "Eye-catching neon green glow stick with an intense look made for standout parties.",
-    image:glowstick32,
-  },
+    description: "Thick, high-visibility textured glow sticks built to provide dependable illumination for extended outdoor or emergency use.",
+    image: glowstick27
+  }
 ];
 
 export default glowsticks;

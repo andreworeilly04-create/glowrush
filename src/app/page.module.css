@@ -209,6 +209,7 @@ body {
   transition: border 300ms ease;
   border: 2px solid transparent;
   border-radius: 8px;
+  cursor:pointer;
 }
 
 .latest_glowsticks_image:hover {

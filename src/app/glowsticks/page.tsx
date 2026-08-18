@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import './page.glowsticks.css';
+import styles from './page.glowsticks.module.css';
 import { glowsticks } from '../../data/glowsticks';
 import Image from 'next/image'
 
@@ -26,19 +26,19 @@ export default function GlowsticksPage() {
   });
 
   return (
-    <div className="glowsticks-container">
-      <header className="glowsticks-header">
-        <h1 className="glowsticks-title">GLOWSTICKS</h1>
+    <div className={styles.glowsticksContainer}>
+      <header className={styles.glowsticksHeader}>
+        <h1 className={styles.glowsticksTitle}>GLOWSTICKS</h1>
 
-        <div className="search-container">
+        <div className={styles.searchContainer}>
           {!isSearchOpen ? (
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="search-toggle-btn"
+              className={styles.searchToggleBtn}
               aria-label="Open search"
             >
               <svg
-                className="search-icon"
+                className={styles.searchIcon}
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
@@ -53,21 +53,21 @@ export default function GlowsticksPage() {
               </svg>
             </button>
           ) : (
-            <div className="search-input-wrapper">
+            <div className={styles.searchInputWrapper}>
               <input
                 type="text"
                 placeholder="search for glowsticks..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 autoFocus
-                className="glow-search-input"
+                className={styles.glowSearchInput}
               />
               <button
                 onClick={() => {
                   setIsSearchOpen(false);
                   setSearchQuery('');
                 }}
-                className="cancel-btn"
+                className={styles.cancelBtn}
               >
                 Cancel
               </button>
@@ -77,31 +77,30 @@ export default function GlowsticksPage() {
       </header>
 
       {/* Filter and Sorting Controls */}
-      <div className="filter-sort-bar">
-        <div className="category-selector">
-          <label htmlFor="category-select" className="filter-label">Category:</label>
+      <div className={styles.filterSortBar}>
+        <div className={styles.categorySelector}>
+          <label htmlFor="category-select" className={styles.filterLabel}>Category:</label>
           <select
             id="category-select"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="filter-select"
+            className={styles.filterSelect}
           >
             <option value="All">All Categories</option>
-            <option value="Classic">Classic</option>
-            <option value="Colorful">Colorful</option>
-            <option value="Ultra Bright">Ultra Bright</option>
-            <option value="Wearable">Wearable</option>
-            <option value="Mini">Mini</option>
+            <option value="Glow Sticks">Glow Sticks</option>
+            <option value="Wearable Glow Accessories">Wearable Glow Accessories</option>
+            <option value="Bulk Party Supplies">Bulk Party Supplies</option>
+            <option value="Special Effects & Gear">Special Effects & Gear</option>
           </select>
         </div>
 
-        <div className="sort-selector">
-          <label htmlFor="sort-select" className="filter-label">Sort By:</label>
+        <div className={styles.sortSelector}>
+          <label htmlFor="sort-select" className={styles.filterLabel}>Sort By:</label>
           <select
             id="sort-select"
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
-            className="filter-select"
+            className={styles.filterSelect}
           >
             <option value="default">Featured</option>
             <option value="price-low-high">Price: Low to High</option>
@@ -112,29 +111,29 @@ export default function GlowsticksPage() {
       </div>
 
       <main>
-        <div className="glowsticks-grid">
+        <div className={styles.glowsticksGrid}>
           {sortedProducts.map((product) => (
-            <div key={product.id} className="product-card">
-              <div className="product-image-container">
+            <div key={product.id} className={styles.productCard}>
+              <div className={styles.productImageContainer}>
                 {product.image ? (
-                  <Image src={product.image} alt={product.name} className="product-image" />
+                  <Image src={product.image} alt={product.name} className={styles.productImage} />
                 ) : (
-                  <div className="product-image-placeholder">Latest Product #{product.id}</div>
+                  <div className={styles.productImagePlaceholder}>Latest Product #{product.id}</div>
                 )}
               </div>
-              <div className="product-info">
+              <div className={styles.productInfo}>
                 <div>
-                  <h2 className="product-name">{product.name}</h2>
-                  <p className="product-price">
+                  <h2 className={styles.productName}>{product.name}</h2>
+                  <p className={styles.productPrice}>
                     {typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price}
                   </p>
                   {product.rating && (
-                    <p className="product-rating">
+                    <p className={styles.productRating}>
                       ★ {product.rating}
                     </p>
                   )}
                 </div>
-                <button className="add-to-cart-btn">Add to Cart</button>
+                <button className={styles.addToCartBtn}>Add to Cart</button>
               </div>
             </div>
           ))}

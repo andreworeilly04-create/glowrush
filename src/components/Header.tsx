@@ -20,12 +20,14 @@ export default function Header() {
     <>
     <header className={styles.header} id="home">
       <figure className={styles.logo_container}>
+        <Link href="/">
         <Image
           src={logo}
           className={styles.logo}
           alt="GlowRush Logo"
           priority
         />
+        </Link>
       </figure>
       <nav className={styles.nav_menu}>
         <ul className={styles.nav_links}>
@@ -87,7 +89,7 @@ export default function Header() {
         <ul className={styles.mobile_nav_links}>
           <li>
             <Link
-              href="#home"
+              href="/"
               onClick={() => setMenuOpen(false)}
               className={`${styles.mobile_nav_link} ${pathname === "/" ? styles.active : ""}`}
             >
@@ -96,7 +98,7 @@ export default function Header() {
           </li>
           <li>
             <Link
-              href="#glowsticks"
+              href="/glowsticks"
               onClick={() => setMenuOpen(false)}
               className={`${styles.mobile_nav_link} ${pathname === "/glowsticks" ? styles.active : ""}`}
             >
@@ -105,7 +107,7 @@ export default function Header() {
           </li>
           <li>
             <Link
-              href="#about"
+              href="/about"
               onClick={() => setMenuOpen(false)}
               className={`${styles.mobile_nav_link} ${pathname === "/about" ? styles.active : ""}`}
             >
@@ -114,7 +116,7 @@ export default function Header() {
           </li>
           <li>
             <Link
-              href="#contact"
+              href="/contact"
               onClick={() => setMenuOpen(false)}
               className={`${styles.mobile_nav_link} ${pathname === "/contact" ? styles.active : ""}`}
             >

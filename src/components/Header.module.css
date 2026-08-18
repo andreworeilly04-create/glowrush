@@ -50,9 +50,6 @@
   transition: color 300ms ease;
 }
 
-.active {
-  color: white;
-}
 
 .nav_icons_wrapper {
   display: flex;
@@ -172,6 +169,11 @@
   color: green;
   transition: color 300ms ease;
 }
+
+.active {
+  color: #d5ff9a;
+}
+
 
 @media screen and (max-width: 969px) {
   .nav_menu {
