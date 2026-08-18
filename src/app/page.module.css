@@ -346,3 +346,69 @@ body {
     width: 100%;
   }
 }
+
+
+@keyframes pulseAnimation {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.skeletonPulse {
+  animation: pulseAnimation 1.5s infinite ease-in-out;
+  background-color: #163823 !important;
+}
+
+.skeletonCard {
+  cursor: default;
+  border: 2px solid transparent;
+}
+
+.skeletonImage {
+  width: 100%;
+  height: 180px;
+  background-color: #163823;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 2px solid transparent !important;
+}
+
+.skeletonLine {
+  border-radius: 4px;
+}
+
+.skeletonTitle {
+  height: 16px;
+  width: 85%;
+  margin: 10px 0 8px 0;
+}
+
+.skeletonPrice {
+  height: 14px;
+  width: 40%;
+  margin-bottom: 8px;
+}
+
+.skeletonRating {
+  height: 12px;
+  width: 60%;
+}
+
+.newsletterSuccessMessage {
+  background-color: rgb(0, 15, 3);
+  border: 1px solid yellowgreen;
+  padding: 14px 24px;
+  border-radius: 8px;
+  color: #adff2f;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(154, 205, 50, 0.2);
+}

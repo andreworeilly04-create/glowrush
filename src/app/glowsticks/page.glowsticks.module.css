@@ -1,5 +1,3 @@
-/* page.glowsticks.module.css */
-
 .glowsticksContainer {
   min-height: 100vh;
   background-color: #0a1f12;
@@ -129,7 +127,7 @@
 
 .filterSelect {
   background-color: #051009;
-  color: rgb(219, 255, 148);;
+  color: rgb(219, 255, 148);
   padding: 0.5rem 1rem;
   border-radius: 9999px;
   outline: none;
@@ -143,7 +141,7 @@
 
 .filterSelect option {
   background-color: darkgreen;
-  color: rgb(219, 255, 148);;
+  color: rgb(219, 255, 148);
 }
 
 .glowsticksGrid {
@@ -179,7 +177,7 @@
   display: flex;
   flex-direction: column;
   transition: border-color 0.2s;
-  cursor: pointer; /* Added pointer cursor */
+  cursor: pointer;
 }
 
 .productCard:hover {
@@ -256,4 +254,54 @@
 
 .addToCartBtn:hover {
   background-color: #86b42b;
+}
+
+/* Skeleton Loading Styles */
+@keyframes pulseAnimation {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.skeletonPulse {
+  animation: pulseAnimation 1.5s infinite ease-in-out;
+  background-color: #183824 !important;
+}
+
+.skeletonCard {
+  border-color: #163321;
+  cursor: default;
+}
+
+.skeletonCard:hover {
+  border-color: #163321;
+}
+
+.skeletonLine {
+  border-radius: 0.25rem;
+}
+
+.skeletonTitle {
+  height: 1.25rem;
+  width: 80%;
+  margin-bottom: 0.5rem;
+}
+
+.skeletonPrice {
+  height: 1rem;
+  width: 40%;
+  margin-bottom: 1rem;
+}
+
+.skeletonBtn {
+  height: 2.25rem;
+  width: 100%;
+  margin-top: 1rem;
+  border-radius: 0.5rem;
 }

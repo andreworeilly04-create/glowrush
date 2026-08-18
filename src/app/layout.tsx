@@ -10,7 +10,20 @@ import Footer from '@/components/Footer'
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GlowRush",
+  title: "GlowRush | Exclusive GlowSticks & Trending Deals",
+  description: "Discover GlowRush for exclusive glowsticks, trending deals, and fast shipping. Shop our curated collection today and elevate your lifestyle.",
+  keywords: ["GlowRush", "online shopping", "trending deals", "exclusive glowsticks"],
+  authors: [{ name: "Andrew" }],
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: "GlowRush | Exclusive GlowSticks & Trending Deals",
+    description: "Discover GlowRush for exclusive glowsticks, trending deals, and fast shipping.",
+    siteName: "GlowRush",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
