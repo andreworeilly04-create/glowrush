@@ -67,7 +67,7 @@ body {
 
 .hero_text {
   font-size: clamp(40px, 7vw, 70px);
-  color: white;
+  color: #adff2f;
   margin: 0;
   word-break: break-word;
   font-weight: 800;
@@ -76,7 +76,7 @@ body {
 }
 
 .hero_sub_text {
-  color: rgb(193, 255, 70);
+  color: rgb(219, 255, 148);
   font-size: clamp(16px, 2vw, 20px);
   max-width: 600px;
   margin: 0;
@@ -160,7 +160,7 @@ body {
 }
 
 .why_choose_us_description {
-  color: rgb(130, 197, 30);
+  color: rgb(219, 255, 148);
   font-weight: bold;
   text-align: center;
   font-size: 14px;
@@ -254,7 +254,7 @@ body {
 }
 
 .newsletter_desc {
-  color: rgb(130, 197, 30);
+  color: rgb(219, 255, 148);
   font-size: 16px;
   margin: 0;
   max-width: 500px;

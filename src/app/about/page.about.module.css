@@ -1,0 +1,193 @@
+/* page.about.module.css */
+
+.container {
+  min-height: 100vh;
+  background-color: #061a12;
+  color: #adff2f;
+  selection-background-color: #adff2f;
+  selection-color: #061a12;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  background-color: rgba(173, 255, 47, 0.1);
+  border: 1px solid rgba(173, 255, 47, 0.3);
+  color: #adff2f;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 0 15px rgba(173, 255, 47, 0.2);
+}
+
+.brandText {
+  color: #adff2f;
+  font-weight: 600;
+}
+
+.storySection {
+  padding: 5rem 1.5rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .storySection {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .storySection {
+    padding-left: 6rem;
+    padding-right: 6rem;
+  }
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .storyGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.storyHeading {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: #adff2f;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #adff2f;
+  padding-left: 1rem;
+}
+
+@media (min-width: 640px) {
+  .storyHeading {
+    font-size: 3rem;
+  }
+}
+
+.storyText {
+  color: #c5f0a4;
+  line-height: 1.625;
+  margin-bottom: 1.5rem;
+}
+
+.storyText:last-child {
+  margin-bottom: 0;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background-color: rgba(11, 46, 32, 0.8);
+  border: 1px solid rgba(40, 80, 55, 0.8);
+  transition: all 300ms ease;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+}
+
+.cardCyan:hover {
+  border-color: rgba(173, 255, 47, 0.6);
+}
+
+.cardCyan:hover .cardTitle {
+  color: #adff2f;
+}
+
+.cardFuchsia:hover {
+  border-color: rgba(127, 255, 0, 0.6);
+}
+
+.cardFuchsia:hover .cardTitle {
+  color: #7fff00;
+}
+
+.cardIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cardTitle {
+  font-weight: 700;
+  color: #adff2f;
+  margin-bottom: 0.5rem;
+  transition: color 200ms ease;
+}
+
+.cardDesc {
+  font-size: 0.875rem;
+  color: #a3d98c;
+}
+
+.footerSection {
+  padding: 4rem 1.5rem;
+  text-align: center;
+  border-top: 1px solid rgba(40, 80, 55, 0.8);
+  background-color: rgba(11, 46, 32, 0.4);
+}
+
+@media (min-width: 640px) {
+  .footerSection {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+.footerInner {
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.footerTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #adff2f;
+  margin-bottom: 0.75rem;
+}
+
+.footerDesc {
+  color: #a3d98c;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(to right, #adff2f, #7fff00);
+  color: #061a12;
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 0 0 20px rgba(173, 255, 47, 0.4);
+  transition: opacity 200ms ease;
+  cursor: pointer;
+}
+
+.ctaButton:hover {
+  opacity: 0.95;
+}

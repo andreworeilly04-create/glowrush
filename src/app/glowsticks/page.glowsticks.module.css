@@ -129,7 +129,7 @@
 
 .filterSelect {
   background-color: #051009;
-  color: #ffffff;
+  color: rgb(219, 255, 148);;
   padding: 0.5rem 1rem;
   border-radius: 9999px;
   outline: none;
@@ -142,8 +142,8 @@
 }
 
 .filterSelect option {
-  background-color: #051009;
-  color: #ffffff;
+  background-color: darkgreen;
+  color: rgb(219, 255, 148);;
 }
 
 .glowsticksGrid {
@@ -224,7 +224,7 @@
 .productName {
   font-size: 1.125rem;
   font-weight: bold;
-  color: #f3f4f6;
+  color: rgb(219, 255, 148);
   margin: 0 0 0.25rem 0;
 }
 
