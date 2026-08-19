@@ -1,0 +1,145 @@
+.cartContainer {
+  max-width: 600px;
+  margin: 40px auto;
+  background-color: #142419;
+  border: 1px solid yellowgreen;
+  border-radius: 8px;
+  padding: 20px;
+  color: yellowgreen;
+  font-family: Arial, sans-serif;
+}
+
+.cartContainer h1 {
+  border-bottom: 2px solid yellowgreen;
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+.emptyCart {
+  text-align: center;
+  padding: 40px 0;
+  font-size: 1.1em;
+}
+
+.shopGlowSticksBtn {
+  display: inline-block;
+  margin-top: 20px;
+  background-color: yellowgreen;
+  color: #1b3022;
+  border: none;
+  padding: 12px 20px;
+  font-size: 1em;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.shopGlowSticksBtn:hover {
+  opacity: 0.9;
+}
+
+.cartHeaderBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: yellowgreen;
+  color: #1b3022;
+  font-weight: bold;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-top: 20px;
+}
+
+.cartItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px dashed yellowgreen;
+}
+
+.itemInfo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.imagePlaceholder {
+  width: 60px;
+  height: 60px;
+  background-color: #1b3022;
+  border: 1px solid yellowgreen;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  font-weight: bold;
+  color: yellowgreen;
+  flex-shrink: 0;
+}
+
+.itemDetails h3 {
+  margin: 0 0 6px 0;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 0.85em;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.removeBtn:hover {
+  opacity: 0.8;
+}
+
+.itemQuantityContainer {
+  display: flex;
+  align-items: center;
+}
+
+.quantityInput {
+  width: 50px;
+  padding: 6px;
+  background-color: #1b3022;
+  color: yellowgreen;
+  border: 1px solid yellowgreen;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.itemPrice {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.cartSummary {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.checkoutBtn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  background-color: yellowgreen;
+  color: #1b3022;
+  border: none;
+  padding: 12px;
+  font-size: 1em;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.checkoutBtn:hover {
+  opacity: 0.9;
+}

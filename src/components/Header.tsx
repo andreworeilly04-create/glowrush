@@ -71,7 +71,7 @@ export default function Header() {
             <FontAwesomeIcon icon={faUser} />
           </li>
           <li className={styles.nav_cart}>
-            <FontAwesomeIcon icon={faCartShopping} />
+            <Link className={styles.nav_link} href="/cart"><FontAwesomeIcon icon={faCartShopping} /></Link>
             <span className={styles.cart_badge}>3</span>
           </li>
         </ul>

@@ -105,7 +105,8 @@ export default function HomePage() {
             ))
           ) : (
             randomGlowsticks.map((glowstick) => (
-              <div key={glowstick.id} className={styles.glowstick_card}>
+              
+              <Link href="/glowstick" key={glowstick.id} className={styles.glowstick_card}>
                 <Image 
                   className={styles.latest_glowsticks_image} 
                   src={glowstick.image} 
@@ -128,8 +129,10 @@ export default function HomePage() {
                       return <FontAwesomeIcon key={index} icon={starIcon} />
                     })}
                   </div>
+                  
                 </div>
-              </div>
+              </Link>
+              
             ))
           )}
         </div>
