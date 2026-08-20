@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './page.glowsticks.module.css';
 import { glowsticks } from '../../data/glowsticks';
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function GlowsticksPage() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -21,9 +22,9 @@ export default function GlowsticksPage() {
   }, [selectedCategory, sortOrder]);
 
   // Filter by category and search query
-  const filteredProducts = glowsticks.filter((product) => {
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProducts = glowsticks.filter((glowstick) => {
+    const matchesCategory = selectedCategory === 'All' || glowstick.category === selectedCategory;
+    const matchesSearch = glowstick.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -132,36 +133,34 @@ export default function GlowsticksPage() {
                     <div className={`${styles.skeletonLine} ${styles.skeletonTitle} ${styles.skeletonPulse}`}></div>
                     <div className={`${styles.skeletonLine} ${styles.skeletonPrice} ${styles.skeletonPulse}`}></div>
                   </div>
-                  <div className={`${styles.skeletonLine} ${styles.skeletonBtn} ${styles.skeletonPulse}`}></div>
                 </div>
               </div>
             ))
           ) : (
             // Render Actual Products
-            sortedProducts.map((product) => (
-              <div key={product.id} className={styles.productCard}>
+            sortedProducts.map((glowstick) => (
+              <Link href={`/glowstick/${glowstick.id}`} key={glowstick.id} className={styles.productCard}>
                 <div className={styles.productImageContainer}>
-                  {product.image ? (
-                    <Image src={product.image} alt={product.name} className={styles.productImage} />
+                  {glowstick.image ? (
+                    <Image src={glowstick.image} alt={glowstick.name} className={styles.productImage} />
                   ) : (
-                    <div className={styles.productImagePlaceholder}>Latest Product #{product.id}</div>
+                    <div className={styles.productImagePlaceholder}>Latest Product #{glowstick.id}</div>
                   )}
                 </div>
                 <div className={styles.productInfo}>
                   <div>
-                    <h2 className={styles.productName}>{product.name}</h2>
+                    <h2 className={styles.productName}>{glowstick.name}</h2>
                     <p className={styles.productPrice}>
-                      {typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price}
+                      {typeof glowstick.price === 'number' ? `$${glowstick.price.toFixed(2)}` : glowstick.price}
                     </p>
-                    {product.rating && (
+                    {glowstick.rating && (
                       <p className={styles.productRating}>
-                        ★ {product.rating}
+                        ★ {glowstick.rating}
                       </p>
                     )}
                   </div>
-                  <button className={styles.addToCartBtn}>Add to Cart</button>
                 </div>
-              </div>
+              </Link>
             ))
           )}
         </div>

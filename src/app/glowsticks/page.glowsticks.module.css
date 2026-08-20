@@ -178,6 +178,7 @@
   flex-direction: column;
   transition: border-color 0.2s;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .productCard:hover {
@@ -238,23 +239,6 @@
   margin-top: 0.25rem;
 }
 
-.addToCartBtn {
-  margin-top: 1rem;
-  width: 100%;
-  background-color: #9acd32;
-  color: #0a1f12;
-  font-weight: bold;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  box-shadow: 0 0 8px rgba(154, 205, 50, 0.4);
-}
-
-.addToCartBtn:hover {
-  background-color: #86b42b;
-}
 
 /* Skeleton Loading Styles */
 @keyframes pulseAnimation {

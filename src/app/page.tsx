@@ -106,7 +106,7 @@ export default function HomePage() {
           ) : (
             randomGlowsticks.map((glowstick) => (
               
-              <Link href="/glowstick" key={glowstick.id} className={styles.glowstick_card}>
+              <Link href={`/glowstick/${glowstick.id}`} key={glowstick.id} className={styles.glowstick_card}>
                 <Image 
                   className={styles.latest_glowsticks_image} 
                   src={glowstick.image} 

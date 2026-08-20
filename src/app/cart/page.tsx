@@ -45,7 +45,7 @@ export default function CartPage() {
             </div>
             <div className={styles.itemPrice}>$29.99</div>
           </div>
-
+          
           <div className={styles.cartSummary}>
             <span>Total:</span>
             <span>$29.99</span>

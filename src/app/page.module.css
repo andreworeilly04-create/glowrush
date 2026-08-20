@@ -201,6 +201,7 @@ body {
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
+  text-decoration: none;
 }
 
 .latest_glowsticks_image {
