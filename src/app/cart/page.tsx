@@ -1,6 +1,7 @@
 'use client'
 import { useCart } from "@/context/context"
 import Image from "next/image"
+import Link from "next/link"
 import styles from './page.cart.module.css'
 
 export default function CartPage() {
@@ -27,7 +28,9 @@ export default function CartPage() {
          {cart.length === 0 ? (
         <div className={styles.emptyCart}>
           <p>You don't have any items in your cart.</p>
-          <button className={styles.cta_btn}>Shop Glow Sticks</button>
+          <Link href="/glowsticks">
+            <button className={styles.shopGlowSticksBtn}>Shop Glow Sticks</button>
+          </Link>
         </div>
       ) : (
         
@@ -35,7 +38,7 @@ export default function CartPage() {
           {cart.map((item: any, index: number) => (
           <div key={index} className={styles.cartItem}>
             <div className={styles.itemInfo}>
-              <Image src={item.image} className={styles.imagePlaceholder} alt={item.name} />
+              <Image src={item.image} className={styles.imagePlaceholder} alt={item.name} width={60} height={60} />
               <div className={styles.itemDetails}>
                 <h3>{item.name}</h3>
                 <button className={styles.removeBtn} onClick={() => removeItem(item.id)}>Remove</button>
@@ -63,7 +66,6 @@ export default function CartPage() {
        
   )
 }
-          
         
     
  

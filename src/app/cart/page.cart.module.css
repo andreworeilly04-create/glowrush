@@ -32,15 +32,17 @@
   font-weight: bold;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .shopGlowSticksBtn:hover {
-  opacity: 0.9;
+  background-color: #9acd32;
+  transform: translateY(-1px);
 }
 
 .cartHeaderBar {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
   align-items: center;
   background-color: yellowgreen;
   color: #1b3022;
@@ -48,13 +50,19 @@
   padding: 10px 15px;
   border-radius: 4px;
   margin-top: 20px;
+  text-align: left;
+}
+
+.cartHeaderBar span:nth-child(2),
+.cartHeaderBar span:nth-child(3) {
+  text-align: center;
 }
 
 .cartItem {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
   align-items: center;
-  padding: 15px;
+  padding: 15px 5px;
   border-bottom: 1px dashed yellowgreen;
 }
 
@@ -62,6 +70,7 @@
   display: flex;
   align-items: center;
   gap: 15px;
+  min-width: 0;
 }
 
 .imagePlaceholder {
@@ -70,17 +79,20 @@
   background-color: #1b3022;
   border: 1px solid yellowgreen;
   border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85em;
-  font-weight: bold;
-  color: yellowgreen;
+  object-fit: cover;
   flex-shrink: 0;
+}
+
+.itemDetails {
+  overflow: hidden;
 }
 
 .itemDetails h3 {
   margin: 0 0 6px 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .removeBtn {
@@ -91,14 +103,16 @@
   padding: 0;
   cursor: pointer;
   text-decoration: underline;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .removeBtn:hover {
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 .itemQuantityContainer {
   display: flex;
+  justify-content: center;
   align-items: center;
 }
 
@@ -116,6 +130,7 @@
 .itemPrice {
   font-weight: bold;
   font-size: 1.1em;
+  text-align: center;
 }
 
 .cartSummary {
@@ -138,8 +153,23 @@
   font-weight: bold;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .checkoutBtn:hover {
-  opacity: 0.9;
+  background-color: #9acd32;
+  transform: translateY(-1px);
+}
+
+/* Responsive adjustment for smaller mobile screens */
+@media (max-width: 480px) {
+  .cartHeaderBar, .cartItem {
+    grid-template-columns: 1.5fr 1fr 1fr;
+    font-size: 0.9rem;
+  }
+  
+  .imagePlaceholder {
+    width: 45px;
+    height: 45px;
+  }
 }
