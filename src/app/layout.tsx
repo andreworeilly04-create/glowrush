@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { config } from "@fortawesome/fontawesome-svg-core";
+import { CartProvider } from "@/context/context";
 config.autoAddCss = false;
 import "./globals.css";
 import Header from '@/components/Header'
@@ -36,9 +37,12 @@ export default function RootLayout({
    
         <html lang="en">
           <body>
-          <Header />
+          <CartProvider>
+            <Header />
             {children}
             <Footer />
+            </CartProvider>
+            
           </body>
           </html>
   );

@@ -10,12 +10,14 @@ import Link from "next/link";
 import styles from "./Header.module.css";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useCart } from "@/context/context"
 import Image from "next/image";
 import logo from "../../public/glowrush_logo.png";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { cart } = useCart();
   return (
     <>
     <header className={styles.header} id="home">
@@ -72,7 +74,7 @@ export default function Header() {
           </li>
           <li className={styles.nav_cart}>
             <Link className={styles.nav_link} href="/cart"><FontAwesomeIcon icon={faCartShopping} /></Link>
-            <span className={styles.cart_badge}>3</span>
+           {cart.reduce((total: number, item: any) => total + (item.quantity || 1), 0) > 0 && ( <span className={styles.cart_badge}>{cart.reduce((total: number, item: any) => total + (item.quantity || 1), 0)}</span>)}
           </li>
         </ul>
         <button

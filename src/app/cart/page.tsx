@@ -1,25 +1,22 @@
 'use client'
-
+import { useCart } from "@/context/context"
+import Image from "next/image"
 import styles from './page.cart.module.css'
 
 export default function CartPage() {
-  // Toggle this to test empty state
-  const cartItems = [
-    { id: 1, name: 'Placeholder Product Item', price: 29.99, quantity: 1 }
-  ];
 
+  const { cart, removefromCart, updateQuantity } = useCart();
+
+  const removeItem = (id: string | number) => {
+    removefromCart(id);
+ };
+
+ const subtotal = cart.reduce((acc: number, item: any) => acc + (item.price * (item.quantity || 1)), 0);
+
+ 
   return (
     <div className={styles.cartContainer}>
       <h1>Your Shopping Cart</h1>
-
-      {cartItems.length === 0 ? (
-        <div className={styles.emptyCart}>
-          <p>You don't have any items in your cart.</p>
-          <button className={styles.cta_btn}>Shop Glow Sticks</button>
-        </div>
-      ) : (
-        <>
-          {/* Yellowgreen bar on top of the item */}
           <div className={styles.cartHeaderBar}>
             <span>Item</span>
             <span>Quantity</span>
@@ -27,33 +24,46 @@ export default function CartPage() {
           </div>
           
           {/* Placeholder Cart Item with Image, Quantity Input, and Remove Button */}
-          <div className={styles.cartItem}>
+         {cart.length === 0 ? (
+        <div className={styles.emptyCart}>
+          <p>You don't have any items in your cart.</p>
+          <button className={styles.cta_btn}>Shop Glow Sticks</button>
+        </div>
+      ) : (
+        
+         <div className={styles.cartList}>
+          {cart.map((item: any, index: number) => (
+          <div key={index} className={styles.cartItem}>
             <div className={styles.itemInfo}>
-              <div className={styles.imagePlaceholder}>Img</div>
+              <Image src={item.image} className={styles.imagePlaceholder} alt={item.name} />
               <div className={styles.itemDetails}>
-                <h3>Placeholder Product Item</h3>
-                <button className={styles.removeBtn}>Remove</button>
+                <h3>{item.name}</h3>
+                <button className={styles.removeBtn} onClick={() => removeItem(item.id)}>Remove</button>
               </div>
             </div>
             <div className={styles.itemQuantityContainer}>
               <input 
                 type="number" 
                 min="1" 
-                defaultValue="1" 
+                value={item.quantity || 1}
+                onChange={(e) => updateQuantity(item.id, Number(e.target.value))}
                 className={styles.quantityInput} 
               />
             </div>
-            <div className={styles.itemPrice}>$29.99</div>
+            <div className={styles.itemPrice}>${item.price}</div>
+            </div>
+            ))}
           </div>
-          
+          )}
           <div className={styles.cartSummary}>
-            <span>Total:</span>
-            <span>$29.99</span>
+            <span>Total:${subtotal.toFixed(2)}</span>
           </div>
-
-          <button className={styles.checkoutBtn}>Proceed to Checkout</button>
-        </>
-      )}
-    </div>
+        <button className={styles.checkoutBtn}>Proceed to Checkout</button>
+        </div>
+       
   )
 }
+          
+        
+    
+ 
