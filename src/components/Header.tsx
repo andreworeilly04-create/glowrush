@@ -10,7 +10,7 @@ import Link from "next/link";
 import styles from "./Header.module.css";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useCart } from "@/context/context"
+import { useCart } from "@/context/context";
 import Image from "next/image";
 import logo from "../../public/glowrush_logo.png";
 

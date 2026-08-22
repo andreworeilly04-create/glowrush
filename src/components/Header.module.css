@@ -50,12 +50,10 @@
   transition: color 300ms ease;
 }
 
-
 .nav_icons_wrapper {
   display: flex;
   align-items: center;
   gap: 20px;
-  width: 280px;
   justify-content: flex-end;
   flex-shrink: 0;
 }
@@ -174,7 +172,6 @@
   color: #d5ff9a;
 }
 
-
 @media screen and (max-width: 985px) {
   .nav_menu {
     display: none;
@@ -182,6 +179,14 @@
 
   .menu_toggle {
     display: block;
+  }
+
+  .nav_icons_wrapper {
+    gap: 15px;
+  }
+
+  .nav_icons {
+    gap: 15px;
   }
 }
 
@@ -216,15 +221,5 @@
     width: 100vw;
     left: 0;
   }
-
-  .hero_section {
-    padding: 60px 15px;
-    gap: 20px;
-  }
-
-  .hero_btns {
-    flex-direction: column;
-    width: 100%;
-    align-items: center;
-  }
 }
+

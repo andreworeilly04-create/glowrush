@@ -13,8 +13,10 @@ export default function CartPage() {
  };
 
  const subtotal = cart.reduce((acc: number, item: any) => acc + (item.price * (item.quantity || 1)), 0);
+ const shipping = subtotal > 0 ? 5.00 : 0.00;
+ const tax = subtotal * 0.07; // 7% tax rate calculation
+ const total = subtotal + shipping + tax;
 
- 
   return (
     <div className={styles.cartContainer}>
       <h1>Your Shopping Cart</h1>
@@ -24,7 +26,6 @@ export default function CartPage() {
             <span>Price</span>
           </div>
           
-          {/* Placeholder Cart Item with Image, Quantity Input, and Remove Button */}
          {cart.length === 0 ? (
         <div className={styles.emptyCart}>
           <p>You don't have any items in your cart.</p>
@@ -58,14 +59,34 @@ export default function CartPage() {
             ))}
           </div>
           )}
-          <div className={styles.cartSummary}>
-            <span>Total:${subtotal.toFixed(2)}</span>
-          </div>
-        <button className={styles.checkoutBtn}>Proceed to Checkout</button>
-        </div>
-       
+
+          {cart.length > 0 && (
+            <div className={styles.summaryWrapper}>
+              <div className={styles.summaryRow}>
+                <span>Subtotal:</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>Shipping:</span>
+                <span>${shipping.toFixed(2)}</span>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>Estimated Tax (7%):</span>
+                <span>${tax.toFixed(2)}</span>
+              </div>
+              <div className={styles.cartSummary}>
+                <span>Total:</span>
+                <span>${total.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
+
+        <Link className={styles.checkoutLink} href="/checkout"><button className={styles.checkoutBtn}>Proceed to Checkout</button></Link>
+    </div>
   )
 }
+
+
         
     
  

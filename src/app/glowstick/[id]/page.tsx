@@ -22,8 +22,6 @@ export default function DetailsPage({ params }: PageProps) {
     (item) => String(item.id) === String(productId),
   );
 
-  // Derive cart status directly from the global cart context. 
-  // This updates instantly whenever you switch routes or add items, preventing any "stuck" states.
   const isInCart = cart.some((item: any) => String(item.id) === String(productId));
 
   if (!glowstick) {
@@ -31,7 +29,6 @@ export default function DetailsPage({ params }: PageProps) {
   }
 
   const handleAddToCart = () => {
-    // Also safely sync with local storage for your persistence logic
     const localCart = JSON.parse(localStorage.getItem("cart") || '[]');
     if (!localCart.some((item: any) => String(item.id) === String(glowstick.id))) {
       localCart.push(glowstick);
@@ -48,10 +45,10 @@ export default function DetailsPage({ params }: PageProps) {
     }
   };
 
-  // Filter related products (excluding current product, taking up to 4)
   const relatedProducts = productsData
-    .filter((item) => String(item.id) !== String(productId))
-    .slice(0, 4);
+    .filter(item => item.category === glowstick.category && item.id !== glowstick.id)
+    .sort((a, b) => (a.id > b.id ? 1 : -1))
+    .slice(0, 8);
 
   return (
     <div className={styles.detailsContainer}>
@@ -70,7 +67,6 @@ export default function DetailsPage({ params }: PageProps) {
           />
         </div>
 
-        {/* Product Information Column */}
         <div className={styles.productInfo}>
           <h1 className={styles.productName}>{glowstick.name}</h1>
 
@@ -90,7 +86,6 @@ export default function DetailsPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Related Products Section */}
       <div className={styles.relatedSection}>
         <h2>Related Products</h2>
         <div className={styles.relatedGrid}>
@@ -111,6 +106,13 @@ export default function DetailsPage({ params }: PageProps) {
               </div>
               <div className={styles.relatedDetails}>
                 <h3>{relatedItem.name}</h3>
+                
+                <div className={styles.relatedRating}>
+                  <span className={styles.relatedStars}>
+                    {"⭐".repeat(relatedItem.rating)}
+                  </span>
+                </div>
+
                 <span className={styles.relatedPrice}>${relatedItem.price.toFixed(2)}</span>
               </div>
             </Link>
