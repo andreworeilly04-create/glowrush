@@ -70,7 +70,7 @@ export default function Header() {
       <div className={styles.nav_icons_wrapper}>
         <ul className={styles.nav_icons}>
           <li className={styles.nav_user}>
-            <FontAwesomeIcon icon={faUser} />
+           <Link href="/login" className={styles.userLink}><FontAwesomeIcon icon={faUser} /></Link>
           </li>
           <li className={styles.nav_cart}>
             <Link className={styles.nav_link} href="/cart"><FontAwesomeIcon icon={faCartShopping} /></Link>

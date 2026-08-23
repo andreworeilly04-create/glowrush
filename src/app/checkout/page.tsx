@@ -177,7 +177,7 @@ export default function CheckoutPage() {
                 checked={formData.paymentMethod === "card"}
                 onChange={() => handlePaymentChange("card")}
               />
-              Credit Card
+               Credit/Debit Card
             </label>
             <label className={styles.radioLabel}>
               <input

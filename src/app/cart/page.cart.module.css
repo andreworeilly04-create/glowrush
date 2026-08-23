@@ -37,8 +37,9 @@
 }
 
 .shopGlowSticksBtn:hover {
-  background-color: #9acd32;
+  background-color: green;
   transform: translateY(-1px);
+  color:white;
 }
 
 .cartHeaderBar {
@@ -176,8 +177,9 @@
 }
 
 .checkoutBtn:hover {
-  background-color: #9acd32;
+  background-color: green;
   transform: translateY(-1px);
+  color:white;
 }
 
 .checkoutLink{
