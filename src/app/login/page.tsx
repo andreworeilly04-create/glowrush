@@ -65,7 +65,7 @@ export default function LoginPage() {
             />
           </div>
           <button type="submit" disabled={loading} className={styles.loginButton}>
-            {loading ? 'Loggin in...' : 'Sign In'}
+            {loading ? 'Logging in...' : 'Sign In'}
           </button>
         </form>
         <div className={styles.signupContainer}>

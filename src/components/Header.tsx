@@ -16,8 +16,11 @@ import logo from "../../public/glowrush_logo.png";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const pathname = usePathname();
   const { cart } = useCart();
+  const isLoggedIn = false; 
+
   return (
     <>
     <header className={styles.header} id="home">
@@ -69,8 +72,38 @@ export default function Header() {
       </nav>
       <div className={styles.nav_icons_wrapper}>
         <ul className={styles.nav_icons}>
-          <li className={styles.nav_user}>
-           <Link href="/login" className={styles.userLink}><FontAwesomeIcon icon={faUser} /></Link>
+          <li className={`${styles.nav_user} ${styles.user_dropdown_container}`}>
+            <button 
+              className={styles.userLink} 
+              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+              aria-label="User Menu"
+            >
+              <FontAwesomeIcon icon={faUser} />
+            </button>
+            {userDropdownOpen && (
+              <ul className={styles.user_dropdown}>
+                {isLoggedIn ? (
+                  <>
+                    <li>
+                      <Link href="/orders" className={styles.user_dropdown_link} onClick={() => setUserDropdownOpen(false)}>
+                        Orders
+                      </Link>
+                    </li>
+                    <li>
+                      <button className={styles.user_dropdown_link} onClick={() => { setUserDropdownOpen(false); /* Handle logout logic here */ }}>
+                        Logout
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <li>
+                    <Link href="/login" className={styles.user_dropdown_link} onClick={() => setUserDropdownOpen(false)}>
+                      Login
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            )}
           </li>
           <li className={styles.nav_cart}>
             <Link className={styles.nav_link} href="/cart"><FontAwesomeIcon icon={faCartShopping} /></Link>
