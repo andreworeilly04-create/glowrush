@@ -27,10 +27,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { success: true, message: 'Logged in successfully' },
       { status: 200 }
     );
+
+    response.cookies.set({
+      name:'session',
+      value: email,
+      path:'/',
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Login error:', error);

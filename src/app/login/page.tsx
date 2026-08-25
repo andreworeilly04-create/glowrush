@@ -1,6 +1,5 @@
 'use client'
 import { useState, SyntheticEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './page.login.module.css';
 
@@ -10,7 +9,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,10 +25,10 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (!res.ok){
-      throw new Error(data.message || 'Failed to login');
+      throw new Error(data.message || 'Invalid Email or Password');
     }
 
-    router.push('/');
+    window.location.href = '/';
   
   } catch (err: any) {
     setError(err.message);

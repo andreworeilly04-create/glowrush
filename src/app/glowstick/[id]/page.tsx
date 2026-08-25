@@ -38,6 +38,11 @@ export default function DetailsPage({ params }: PageProps) {
   };
 
   const handleButtonClick = () => {
+    const hasSession = document.cookie.split('; ').some((row) => row.startsWith('session='));
+    if (!hasSession) {
+      window.location.href = "/login";
+      return;
+    }
     if (isInCart) {
       router.push("/cart");
     } else {
@@ -81,7 +86,7 @@ export default function DetailsPage({ params }: PageProps) {
           <div className={styles.priceTag}>${glowstick.price.toFixed(2)}</div>
 
           <button className={styles.addToCartBtn} onClick={handleButtonClick}>
-            {isInCart ? "View Cart" : "Add To Cart"}
+            {!document.cookie.includes('session=') ? 'Login to Add' : isInCart ? "View Cart" : "Add To Cart"}
           </button>
         </div>
       </div>

@@ -32,13 +32,19 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json'},
-        body:JSON.stringify(formData),
+        body:JSON.stringify({ 
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password:formData.password,
+          confirmPassword: formData.confirmPassword
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Something went wrong')
+        throw new Error(data.message || 'User already Exists')
       }
       window.location.href = '/';
     } catch (err:any) {
