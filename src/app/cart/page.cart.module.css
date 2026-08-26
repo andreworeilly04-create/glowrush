@@ -1,19 +1,29 @@
-
 .cartContainer {
   max-width: 600px;
-  margin: 40px auto;
+  margin: 20px auto;
   background-color: #142419;
   border: 1px solid yellowgreen;
   border-radius: 8px;
-  padding: 20px;
+  padding: 15px;
   color: yellowgreen;
   font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  width: 95%;
+}
+
+@media (min-width: 768px) {
+  .cartContainer {
+    margin: 40px auto;
+    padding: 20px;
+    width: 100%;
+  }
 }
 
 .cartContainer h1 {
   border-bottom: 2px solid yellowgreen;
   padding-bottom: 10px;
   margin-top: 0;
+  font-size: clamp(1.4rem, 4vw, 1.75rem);
 }
 
 .emptyCart {
@@ -34,12 +44,14 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  text-decoration: none;
+  text-align: center;
 }
 
 .shopGlowSticksBtn:hover {
   background-color: green;
   transform: translateY(-1px);
-  color:white;
+  color: white;
 }
 
 .cartHeaderBar {
@@ -49,10 +61,18 @@
   background-color: yellowgreen;
   color: #1b3022;
   font-weight: bold;
-  padding: 10px 15px;
+  padding: 10px 12px;
   border-radius: 4px;
   margin-top: 20px;
   text-align: left;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 480px) {
+  .cartHeaderBar {
+    padding: 10px 15px;
+    font-size: 1rem;
+  }
 }
 
 .cartHeaderBar span:nth-child(2),
@@ -64,20 +84,34 @@
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   align-items: center;
-  padding: 15px 5px;
+  padding: 12px 5px;
   border-bottom: 1px dashed yellowgreen;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 480px) {
+  .cartItem {
+    padding: 15px 5px;
+    font-size: 1rem;
+  }
 }
 
 .itemInfo {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   min-width: 0;
 }
 
+@media (min-width: 480px) {
+  .itemInfo {
+    gap: 15px;
+  }
+}
+
 .imagePlaceholder {
-  width: 60px;
-  height: 60px;
+  width: 45px;
+  height: 45px;
   background-color: #1b3022;
   border: 1px solid yellowgreen;
   border-radius: 4px;
@@ -85,27 +119,48 @@
   flex-shrink: 0;
 }
 
+@media (min-width: 480px) {
+  .imagePlaceholder {
+    width: 60px;
+    height: 60px;
+  }
+}
+
 .itemDetails {
   overflow: hidden;
+  min-width: 0;
 }
 
 .itemDetails h3 {
-  margin: 0 0 6px 0;
-  font-size: 1rem;
+  margin: 0 0 4px 0;
+  font-size: 0.85rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@media (min-width: 480px) {
+  .itemDetails h3 {
+    font-size: 1rem;
+    margin: 0 0 6px 0;
+  }
 }
 
 .removeBtn {
   background: none;
   border: none;
   color: #ff6b6b;
-  font-size: 0.85em;
+  font-size: 0.8em;
   padding: 0;
   cursor: pointer;
   text-decoration: underline;
   transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+@media (min-width: 480px) {
+  .removeBtn {
+    font-size: 0.85em;
+  }
 }
 
 .removeBtn:hover {
@@ -119,20 +174,34 @@
 }
 
 .quantityInput {
-  width: 50px;
-  padding: 6px;
+  width: 45px;
+  padding: 6px 4px;
   background-color: #1b3022;
   color: yellowgreen;
   border: 1px solid yellowgreen;
   border-radius: 4px;
   text-align: center;
   font-weight: bold;
+  font-size: 16px; /* Prevents mobile browsers from auto-zooming when tapped */
+  box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .quantityInput {
+    width: 50px;
+  }
 }
 
 .itemPrice {
   font-weight: bold;
-  font-size: 1.1em;
+  font-size: 0.95em;
   text-align: center;
+}
+
+@media (min-width: 480px) {
+  .itemPrice {
+    font-size: 1.1em;
+  }
 }
 
 .summaryWrapper {
@@ -147,18 +216,30 @@
 .summaryRow {
   display: flex;
   justify-content: space-between;
-  font-size: 1em;
+  font-size: 0.95em;
   opacity: 0.9;
+}
+
+@media (min-width: 480px) {
+  .summaryRow {
+    font-size: 1em;
+  }
 }
 
 .cartSummary {
   display: flex;
   justify-content: space-between;
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-weight: bold;
   border-top: 1px dashed yellowgreen;
   padding-top: 10px;
   margin-top: 5px;
+}
+
+@media (min-width: 480px) {
+  .cartSummary {
+    font-size: 1.2em;
+  }
 }
 
 .checkoutBtn {
@@ -174,27 +255,23 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  box-sizing: border-box;
 }
 
 .checkoutBtn:hover {
   background-color: green;
   transform: translateY(-1px);
-  color:white;
+  color: white;
 }
 
-.checkoutLink{
+.checkoutLink {
   text-decoration: none;
 }
 
-/* Responsive adjustment for smaller mobile screens */
+/* Mobile compact adjustments */
 @media (max-width: 480px) {
   .cartHeaderBar, .cartItem {
-    grid-template-columns: 1.5fr 1fr 1fr;
-    font-size: 0.9rem;
-  }
-  
-  .imagePlaceholder {
-    width: 45px;
-    height: 45px;
+    grid-template-columns: 1.6fr 0.9fr 1fr;
+    font-size: 0.85rem;
   }
 }

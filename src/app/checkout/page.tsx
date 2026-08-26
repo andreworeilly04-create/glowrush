@@ -16,7 +16,6 @@ export default function CheckoutPage() {
     city: "",
     state: "",
     zipCode: "",
-    paymentMethod: "card",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,26 +23,24 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const subtotal = cart.reduce((total: number, item: any) => {
     const price = item.price || 0;
     const qty = item.quantity || 1;
     return total + price * qty;
   }, 0);
 
-  const shipping = subtotal > 0 ? 5.00 : 0.00;
+  const shipping = subtotal > 0 ? 5.0 : 0.0;
   const tax = subtotal * 0.07;
   const total = subtotal + shipping + tax;
-
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const response = await fetch('/api/webhook', {
-        method:'POST',
+      const response = await fetch("/api/webhook", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ items: cart, shipping: shipping, tax: tax }),
       });
@@ -51,22 +48,52 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (data.url) {
+        const subtotal = cart.reduce(
+          (acc: number, item: any) => acc + item.price * (item.quantity || 1),
+          0,
+        );
+        const finalTotal = subtotal + (shipping || 0) + (tax || 0);
+
+        localStorage.setItem(
+          "recent_order",
+          JSON.stringify({
+            items: cart.map((item: any) => ({
+              name: item.name,
+              quantity: item.quantity || 1,
+              image: item.image,
+            })),
+            total: finalTotal,
+          }),
+        );
+
         window.location.href = data.url;
       } else {
-        console.error('Failed to create checkout session');
+        console.error("Failed to create checkout session");
       }
     } catch (error) {
-      console.error('Error during checkout:', error);
+      console.error("Error during checkout:", error);
     }
-  }
+  };
 
   if (cart.length === 0) {
     return (
       <div className={styles.checkoutContainer}>
         <div className={styles.emptyState}>
           <h2>Your cart is empty!</h2>
-          <p style={{ margin: "15px 0" }}>Add some glowsticks before heading to checkout.</p>
-          <Link href="/glowsticks" className={styles.placeOrderBtn} style={{ display: "inline-block", textDecoration: "none", textAlign: "center", width: "auto", padding: "10px 20px" }}>
+          <p style={{ margin: "15px 0" }}>
+            Add some glowsticks before heading to checkout.
+          </p>
+          <Link
+            href="/glowsticks"
+            className={styles.placeOrderBtn}
+            style={{
+              display: "inline-block",
+              textDecoration: "none",
+              textAlign: "center",
+              width: "auto",
+              padding: "10px 20px",
+            }}
+          >
             Browse Glow Sticks
           </Link>
         </div>
@@ -79,7 +106,6 @@ export default function CheckoutPage() {
       <h1 className={styles.checkoutTitle}>Checkout</h1>
 
       <form onSubmit={handleCheckout} className={styles.checkoutGrid}>
-       
         <div className={styles.checkoutForm}>
           <h2 className={styles.sectionTitle}>Delivery Information</h2>
 
@@ -139,7 +165,13 @@ export default function CheckoutPage() {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: "10px",
+            }}
+          >
             <div className={styles.formGroup}>
               <label htmlFor="city">City</label>
               <input
@@ -203,7 +235,9 @@ export default function CheckoutPage() {
                   <div className={styles.itemDetails}>
                     <h3 className={styles.itemName}>{item.name}</h3>
                     <span className={styles.itemMeta}>Qty: {itemQuantity}</span>
-                    <span className={styles.itemMeta}>${(itemPrice * itemQuantity).toFixed(2)}</span>
+                    <span className={styles.itemMeta}>
+                      ${(itemPrice * itemQuantity).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               );

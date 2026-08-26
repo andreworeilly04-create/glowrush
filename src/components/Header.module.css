@@ -268,7 +268,15 @@
 
   .nav_icons {
     gap: 10px;
-    font-size: 15px;
+    /* Removed the shrinking 15px font-size override so icon fonts scale consistently */
+    font-size: 20px; 
+  }
+
+  /* Explicitly normalize user icon and cart icon sizing elements at 480px */
+  .nav_user,
+  .nav_cart,
+  .userLink {
+    font-size: 20px;
   }
 
   .menu_toggle {

@@ -1,21 +1,34 @@
-'use client'
-import styles from './page.orders.module.css';
+"use client";
+import { useState, useEffect } from "react";
+import styles from "./page.orders.module.css";
+import Image from "next/image";
 
 export default function OrdersPage() {
-  const orders = [
-    {
-      id: 'ORD-2026-01',
-      name: 'GlowRush Product Item',
-      status: 'Out for Delivery',
-      total: '$49.99',
-    },
-    {
-      id: 'ORD-2026-02',
-      name: 'Featured Item Bundle',
-      status: 'Processing',
-      total: '$85.00',
-    },
-  ];
+  const [orders, setOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    if (queryParams.get("success") === "true") {
+      const savedCart = localStorage.getItem("recent_order");
+
+      if (savedCart) {
+        const parsedOrder = JSON.parse(savedCart);
+
+        const newOrder = {
+          id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+          name: parsedOrder.items
+            .map((i: any) => `${i.name} (Quantity: ${i.quantity || 1})`)
+            .join(", "),
+          image: parsedOrder.items[0]?.image || "",
+          status: "Paid / Processing",
+          total: `$${parsedOrder.total.toFixed(2)}`,
+        };
+
+        setOrders([newOrder]);
+        localStorage.removeItem("recent_order");
+      }
+    }
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -25,10 +38,18 @@ export default function OrdersPage() {
         {orders.map((order) => (
           <div key={order.id} className={styles.orderCard}>
             <div className={styles.orderLeft}>
-              <div className={styles.productImg}>Image Placeholder</div>
+              {order.image && (
+                <Image
+                  src={order.image}
+                  className={styles.productImg}
+                  alt={order.name}
+                />
+              )}
               <div className={styles.orderDetails}>
                 <h3>{order.name}</h3>
-                <span className={styles.statusBadge}>Status: {order.status}</span>
+                <span className={styles.statusBadge}>
+                  Status: {order.status}
+                </span>
               </div>
             </div>
 

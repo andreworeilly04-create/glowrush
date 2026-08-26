@@ -58,10 +58,22 @@
     padding: 40px 15px;
   }
 
-  
+  /* Make the logo smaller on smaller screens */
+  .footer_logo_container {
+    width: 160px; 
+  }
 
   .footer_links {
     gap: 15px;
     flex-direction: column;
+  }
+
+  /* Reduce font size on smaller screens to prevent wrapping/overflow issues */
+  .footer_link {
+    font-size: 14px;
+  }
+
+  .footer_text {
+    font-size: 13px;
   }
 }

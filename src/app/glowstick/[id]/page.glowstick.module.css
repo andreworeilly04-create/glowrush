@@ -1,13 +1,22 @@
 .detailsContainer {
   max-width: 900px;
-  margin: 40px auto;
+  margin: 20px auto;
   background-color: #142419;
   border: 1px solid yellowgreen;
   border-radius: 8px;
-  padding: 30px;
+  padding: 20px;
   color: yellowgreen;
   font-family: Arial, sans-serif;
   box-sizing: border-box;
+  width: 95%;
+}
+
+@media (min-width: 768px) {
+  .detailsContainer {
+    margin: 40px auto;
+    padding: 30px;
+    width: 100%;
+  }
 }
 
 .backBtn {
@@ -15,7 +24,7 @@
   border: 1px solid yellowgreen;
   color: yellowgreen;
   padding: 8px 14px;
-  font-size: 0.95em;
+  font-size: 0.9em;
   font-weight: bold;
   border-radius: 4px;
   cursor: pointer;
@@ -33,14 +42,21 @@
 
 .productLayout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
+  grid-template-columns: 1fr;
+  gap: 20px;
   align-items: center;
+}
+
+@media (min-width: 768px) {
+  .productLayout {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
 }
 
 .imagePlaceholder {
   width: 100%;
-  height: 350px;
+  height: 250px;
   background-color: #1b3022;
   border: 1px solid yellowgreen;
   border-radius: 6px;
@@ -51,6 +67,13 @@
   font-weight: bold;
   color: yellowgreen;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .imagePlaceholder {
+    height: 350px;
+  }
 }
 
 .productImage {
@@ -65,42 +88,67 @@
 }
 
 .productName {
-  margin: 0 0 15px 0;
-  font-size: 2em;
+  margin: 0 0 12px 0;
+  font-size: 1.5em;
   border-bottom: 2px solid yellowgreen;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
   word-break: break-word;
+}
+
+@media (min-width: 768px) {
+  .productName {
+    font-size: 2em;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
 }
 
 .ratingContainer {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .stars {
   letter-spacing: 2px;
+  font-size: 0.9em;
 }
 
 .productDescription {
-  margin: 0 0 20px 0;
-  line-height: 1.6;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
   opacity: 0.9;
+  font-size: 0.95em;
+}
+
+@media (min-width: 768px) {
+  .productDescription {
+    font-size: 1em;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
 }
 
 .priceTag {
-  font-size: 1.5em;
+  font-size: 1.3em;
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .priceTag {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+  }
 }
 
 .addToCartBtn {
   background-color: yellowgreen;
   color: #1b3022;
   border: none;
-  padding: 14px;
-  font-size: 1.1em;
+  padding: 12px;
+  font-size: 1em;
   font-weight: bold;
   border-radius: 4px;
   cursor: pointer;
@@ -108,32 +156,60 @@
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
+@media (min-width: 768px) {
+  .addToCartBtn {
+    padding: 14px;
+    font-size: 1.1em;
+  }
+}
+
 .addToCartBtn:hover {
   background-color: green;
   transform: translateY(-1px);
-  color:white;
+  color: white;
 }
 
 /* Related Products Styling */
 .relatedSection {
-  margin-top: 50px;
+  margin-top: 35px;
   border-top: 2px solid yellowgreen;
-  padding-top: 20px;
+  padding-top: 15px;
   width: 100%;
   box-sizing: border-box;
 }
 
+@media (min-width: 768px) {
+  .relatedSection {
+    margin-top: 50px;
+    padding-top: 20px;
+  }
+}
+
 .relatedSection h2 {
-  font-size: 1.4em;
-  margin-bottom: 20px;
+  font-size: 1.2em;
+  margin-bottom: 15px;
+}
+
+@media (min-width: 768px) {
+  .relatedSection h2 {
+    font-size: 1.4em;
+    margin-bottom: 20px;
+  }
 }
 
 .relatedGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   width: 100%;
   box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .relatedGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
 }
 
 .relatedCard {
@@ -146,7 +222,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 0; /* Crucial for preventing grid items from overflowing */
+  min-width: 0;
   box-sizing: border-box;
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
@@ -181,32 +257,34 @@
 }
 
 .relatedDetails h3 {
-  font-size: 0.8em;
-  margin: 0 0 4px 0;
+  font-size: 0.75em;
+  margin: 0 0 3px 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
 }
 
+@media (min-width: 768px) {
+  .relatedDetails h3 {
+    font-size: 0.8em;
+    margin: 0 0 4px 0;
+  }
+}
+
+.relatedRating {
+  font-size: 0.65em;
+  margin-bottom: 3px;
+}
+
 .relatedPrice {
-  font-size: 0.8em;
+  font-size: 0.75em;
   font-weight: bold;
   opacity: 0.9;
 }
 
-/* Responsive layout for smaller screens */
-@media (max-width: 768px) {
-  .productLayout {
-    grid-template-columns: 1fr;
-  }
-
-  .imagePlaceholder {
-    height: 250px;
-  }
-
-  .relatedGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+@media (min-width: 768px) {
+  .relatedPrice {
+    font-size: 0.8em;
   }
 }

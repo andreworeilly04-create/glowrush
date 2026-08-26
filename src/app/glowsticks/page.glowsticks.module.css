@@ -4,6 +4,7 @@
   color: #ffffff;
   padding: 1rem;
   font-family: sans-serif;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
@@ -16,16 +17,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid #2d5a3f;
   padding-bottom: 1rem;
+  gap: 1rem;
 }
 
 .glowsticksTitle {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: #9acd32;
+  margin: 0;
 }
 
 @media (min-width: 768px) {
@@ -65,25 +68,30 @@
 .searchInputWrapper {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
 }
 
 .glowSearchInput {
   background-color: #051009;
   color: #ffffff;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.8rem;
   border-radius: 9999px;
   outline: none;
   border: 1px solid #9acd32;
   box-shadow: 0 0 10px #9acd32;
-  font-size: 0.875rem;
-  width: 12rem;
+  font-size: 16px; /* Set to 16px to prevent mobile browser auto-zooming and sticking out */
+  width: 100%;
+  max-width: 14rem;
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
   .glowSearchInput {
     width: 16rem;
     font-size: 1rem;
+    padding: 0.5rem 1rem;
   }
 }
 
@@ -94,10 +102,10 @@
 .cancelBtn {
   background: none;
   border: none;
-  margin-left: 0.5rem;
   font-size: 0.75rem;
   color: #9acd32;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .cancelBtn:hover {
@@ -116,25 +124,28 @@
 .sortSelector {
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 240px;
 }
 
 .filterLabel {
   margin-right: 0.5rem;
   color: #9acd32;
   font-weight: bold;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .filterSelect {
   background-color: #051009;
   color: rgb(219, 255, 148);
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 9999px;
   outline: none;
   border: 1px solid #9acd32;
   box-shadow: 0 0 10px #9acd32;
-  font-size: 0.875rem;
-  width: auto;
+  font-size: 0.85rem;
+  width: 100%;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -147,10 +158,10 @@
 .glowsticksGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 500px) {
   .glowsticksGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -159,6 +170,7 @@
 @media (min-width: 768px) {
   .glowsticksGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
   }
 }
 
@@ -221,7 +233,7 @@
 }
 
 .productName {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: bold;
   color: rgb(219, 255, 148);
   margin: 0 0 0.25rem 0;
@@ -230,15 +242,47 @@
 .productPrice {
   color: #9acd32;
   font-weight: 600;
+  font-size: 0.95rem;
   margin: 0;
 }
 
 .productRating {
   color: #ffbb01;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   margin-top: 0.25rem;
 }
 
+/* Mobile Adjustments for Header wrapping and search input bounds */
+@media (max-width: 480px) {
+  .glowsticksHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .searchContainer {
+    width: 100%;
+  }
+
+  .searchInputWrapper {
+    width: 100%;
+  }
+
+  .glowSearchInput {
+    max-width: 100%;
+    flex-grow: 1;
+  }
+
+  .filterSortBar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .categorySelector,
+  .sortSelector {
+    width: 100%;
+    min-width: 100%;
+  }
+}
 
 /* Skeleton Loading Styles */
 @keyframes pulseAnimation {

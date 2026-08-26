@@ -4,8 +4,13 @@
   min-height: 100vh;
   background-color: #061a12;
   color: #adff2f;
-  selection-background-color: #adff2f;
-  selection-color: #061a12;
+  box-sizing: border-box;
+}
+
+/* Standardized text selection styling */
+.container ::selection {
+  background-color: #adff2f;
+  color: #061a12;
 }
 
 .badge {
@@ -29,15 +34,15 @@
 }
 
 .storySection {
-  padding: 5rem 1.5rem;
+  padding: 4rem 1rem;
   max-width: 64rem;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
   .storySection {
-    padding-left: 3rem;
-    padding-right: 3rem;
+    padding: 5rem 3rem;
   }
 }
 
@@ -51,24 +56,26 @@
 .storyGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
+  gap: 2.5rem;
   align-items: center;
 }
 
 @media (min-width: 768px) {
   .storyGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem;
   }
 }
 
 .storyHeading {
-  font-size: 2.25rem;
+  font-size: clamp(1.85rem, 5vw, 2.25rem);
   font-weight: 900;
   letter-spacing: -0.025em;
   color: #adff2f;
   margin-bottom: 1.5rem;
   border-left: 4px solid #adff2f;
   padding-left: 1rem;
+  word-break: break-word;
 }
 
 @media (min-width: 640px) {
@@ -81,6 +88,7 @@
   color: #c5f0a4;
   line-height: 1.625;
   margin-bottom: 1.5rem;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
 }
 
 .storyText:last-child {
@@ -91,6 +99,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
@@ -106,6 +115,7 @@
   border: 1px solid rgba(40, 80, 55, 0.8);
   transition: all 300ms ease;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 .cardCyan:hover {
@@ -139,19 +149,20 @@
 .cardDesc {
   font-size: 0.875rem;
   color: #a3d98c;
+  line-height: 1.5;
 }
 
 .footerSection {
-  padding: 4rem 1.5rem;
+  padding: 3rem 1rem;
   text-align: center;
   border-top: 1px solid rgba(40, 80, 55, 0.8);
   background-color: rgba(11, 46, 32, 0.4);
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
   .footerSection {
-    padding-left: 3rem;
-    padding-right: 3rem;
+    padding: 4rem 3rem;
   }
 }
 
@@ -161,7 +172,7 @@
 }
 
 .footerTitle {
-  font-size: 1.25rem;
+  font-size: clamp(1.15rem, 3vw, 1.25rem);
   font-weight: 600;
   color: #adff2f;
   margin-bottom: 0.75rem;
@@ -171,6 +182,7 @@
   color: #a3d98c;
   font-size: 0.875rem;
   margin-bottom: 1.5rem;
+  line-height: 1.5;
 }
 
 .ctaButton {
@@ -186,8 +198,21 @@
   box-shadow: 0 0 20px rgba(173, 255, 47, 0.4);
   transition: opacity 200ms ease;
   cursor: pointer;
+  text-decoration: none;
+  border: none;
 }
 
 .ctaButton:hover {
   opacity: 0.95;
+}
+
+/* Extra safety rule for narrow viewports (480px and below) */
+@media screen and (max-width: 480px) {
+  .storySection {
+    padding: 3rem 1rem;
+  }
+  
+  .card {
+    padding: 1.25rem;
+  }
 }
