@@ -4,11 +4,9 @@ import { useCart } from "@/context/context";
 import styles from "./page.checkout.module.css";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function CheckoutPage() {
   const { cart } = useCart();
-  const router = useRouter();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -26,9 +24,6 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePaymentChange = (method: string) => {
-    setFormData((prev) => ({ ...prev, paymentMethod: method }));
-  };
 
   const subtotal = cart.reduce((total: number, item: any) => {
     const price = item.price || 0;
@@ -40,11 +35,30 @@ export default function CheckoutPage() {
   const tax = subtotal * 0.07;
   const total = subtotal + shipping + tax;
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Order placed successfully!");
-    router.push("/");
-  };
+
+    try {
+      const response = await fetch('/api/webhook', {
+        method:'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ items: cart, shipping: shipping, tax: tax }),
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('Failed to create checkout session');
+      }
+    } catch (error) {
+      console.error('Error during checkout:', error);
+    }
+  }
 
   if (cart.length === 0) {
     return (
@@ -64,8 +78,8 @@ export default function CheckoutPage() {
     <div className={styles.checkoutContainer}>
       <h1 className={styles.checkoutTitle}>Checkout</h1>
 
-      <form onSubmit={handleSubmit} className={styles.checkoutGrid}>
-        {/* Left Column: Delivery Information & Payment Options */}
+      <form onSubmit={handleCheckout} className={styles.checkoutGrid}>
+       
         <div className={styles.checkoutForm}>
           <h2 className={styles.sectionTitle}>Delivery Information</h2>
 
@@ -165,30 +179,6 @@ export default function CheckoutPage() {
                 placeholder="32601"
               />
             </div>
-          </div>
-
-          <h2 className={styles.sectionTitle} style={{ marginTop: "10px" }}>Payment Method</h2>
-          <div className={styles.paymentOptions}>
-            <label className={styles.radioLabel}>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="card"
-                checked={formData.paymentMethod === "card"}
-                onChange={() => handlePaymentChange("card")}
-              />
-               Credit/Debit Card
-            </label>
-            <label className={styles.radioLabel}>
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="cash"
-                checked={formData.paymentMethod === "cash"}
-                onChange={() => handlePaymentChange("cash")}
-              />
-              Cash on Delivery
-            </label>
           </div>
         </div>
 
