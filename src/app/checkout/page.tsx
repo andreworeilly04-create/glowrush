@@ -53,16 +53,25 @@ export default function CheckoutPage() {
           0,
         );
         const finalTotal = subtotal + (shipping || 0) + (tax || 0);
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const activeUserId = currentUser.user_id || null;
 
         localStorage.setItem(
           "recent_order",
           JSON.stringify({
+            userId: activeUserId,
             items: cart.map((item: any) => ({
               name: item.name,
               quantity: item.quantity || 1,
               image: item.image,
-            })),
-            total: finalTotal,
+              })),
+              price:subtotal,
+              shipping: shipping,
+              tax:tax,
+              total: finalTotal,
+              phone: formData.phone,
+              customerEmail: formData.email,
+              shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}` 
           }),
         );
 

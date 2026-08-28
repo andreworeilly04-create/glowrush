@@ -7,61 +7,136 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    if (queryParams.get("success") === "true") {
       const savedCart = localStorage.getItem("recent_order");
 
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+        const shippingInfo = JSON.parse(localStorage.getItem('shipping_address') || '{}');
+
+        const userId = currentUser.user_id || null;
       if (savedCart) {
         const parsedOrder = JSON.parse(savedCart);
+        fetch('/api/orders/save', {
+          method:'POST',
+          headers: { 'Content-Type': 'application/json'},
+          body:JSON.stringify({
+            ...parsedOrder,
+            userId: currentUser.user_id || null,
+            customerEmail: parsedOrder.customerEmail || 'N/A',
+            shippingAddress: shippingInfo.address || parsedOrder.shippingAddress || 'N/A',
+            phone:parsedOrder.phone || 'N/A'
+          }),
+        }).catch((err) => console.error('Failed to save to db:', err))
 
+        const parsedItems = Array.isArray(parsedOrder.items) ? parsedOrder.items : [];
         const newOrder = {
           id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-          name: parsedOrder.items
+          name: parsedItems
             .map((i: any) => `${i.name} (Quantity: ${i.quantity || 1})`)
             .join(", "),
-          image: parsedOrder.items[0]?.image || "",
+          image: parsedItems[0]?.image || "",
           status: "Paid / Processing",
-          total: `$${parsedOrder.total.toFixed(2)}`,
+          price: `$${Number(parsedOrder.price || 0).toFixed(2)}`,
+          shipping: `$${Number(parsedOrder.shipping || 0).toFixed(2)}`,
+          tax: `$${Number(parsedOrder.tax || 0).toFixed(2)}`,
+          total: `$${Number(parsedOrder.total || 0).toFixed(2)}`,
         };
-
         setOrders([newOrder]);
         localStorage.removeItem("recent_order");
-      }
-    }
+      } else {
+        if (userId){
+          fetch(`/api/orders.get?user_id=${userId}`)
+          .then(res => res.json())
+          .then(data => {
+            if ( data.success && data.orders){
+              const formattedOrders = data.orders.map((o: any) => {
+                let parsedItems = [];
+                try {
+                  parsedItems = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
+                } catch (e) {
+                  parsedItems = [];
+                }
+                return {
+                  id: `ORD-${o.id}`,
+                  name: parsedItems.map((i: any) => `${i.name} (Quantity: ${i.quantity || 1})`).join(", "),
+                  image:parsedItems[0]?.image || "",
+                  status: o.status || 'Paid / Processing',
+                  price: `$${Number(o.price || 0).toFixed(2)}`,
+                  shipping: `$${Number(o.shipping || 0).toFixed(2)}`,
+                  tax: `$${Number(o.tax || 0).toFixed(2)}`,
+                  total: `$${Number(o.total || 0).toFixed(2)}`,
+                }
+              });
+              setOrders(formattedOrders);
+                }
+              })
+              .catch((err: any) => console.error('Failed to fetch orders:', err));
+            }
+          }
   }, []);
+
+  const handleCancelOrder = (orderId: string) => {
+    setOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+  };
 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Your Orders</h1>
 
-      <div className={styles.ordersList}>
-        {orders.map((order) => (
-          <div key={order.id} className={styles.orderCard}>
-            <div className={styles.orderLeft}>
-              {order.image && (
-                <Image
-                  src={order.image}
-                  className={styles.productImg}
-                  alt={order.name}
-                />
-              )}
-              <div className={styles.orderDetails}>
-                <h3>{order.name}</h3>
-                <span className={styles.statusBadge}>
-                  Status: {order.status}
-                </span>
+      {orders.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p>No active orders found.</p>
+        </div>
+      ) : (
+        <div className={styles.ordersList}>
+          {orders.map((order) => (
+            <div key={order.id} className={styles.orderCard}>
+              <div className={styles.orderLeft}>
+                {order.image && (
+                  <Image
+                    src={order.image}
+                    width={80}
+                    height={80}
+                    className={styles.productImg}
+                    alt={order.name}
+                  />
+                )}
+                <div className={styles.orderDetails}>
+                  <h3>{order.name}</h3>
+                  <span className={styles.statusBadge}>
+                    Status: {order.status}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <div className={styles.orderRight}>
-              <div className={styles.priceInfo}>
-                Total: <span>{order.total}</span>
+
+              <div className={styles.orderRight}>
+                <div className={styles.priceInfo}>
+                  Price: <span>{order.price}</span>
+                </div>
+                <div className={styles.priceInfo}>
+                  Shipping: <span>{order.shipping}</span>
+                </div>
+                <div className={styles.priceInfo}>
+                  Tax: <span>{order.tax}</span>
+                </div>
+                <div className={styles.priceInfo}>
+                  Total: <span>{order.total}</span>
+                </div>
+                <div className={styles.buttonGroup}>
+                  <button className={styles.trackBtn}>Track Order</button>
+                  <button 
+                    className={styles.cancelBtn}
+                    onClick={() => handleCancelOrder(order.id)}
+                  >
+                    Cancel Order
+                  </button>
+                </div>
               </div>
-              <button className={styles.trackBtn}>Track Order</button>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

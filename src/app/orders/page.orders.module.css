@@ -41,7 +41,15 @@
 .orderLeft {
   display: flex;
   gap: 1rem;
-  align-items: center;
+  align-items: flex-start; /* Aligns items cleanly when text wraps */
+  min-width: 0; /* Prevents flex items from overflowing bounds */
+  flex: 1;
+}
+
+@media (min-width: 600px) {
+  .orderLeft {
+    align-items: center;
+  }
 }
 
 .productImg {
@@ -57,12 +65,20 @@
   text-align: center;
   flex-shrink: 0;
   padding: 0.25rem;
+  object-fit: cover;
+}
+
+.orderDetails {
+  min-width: 0; /* Crucial for text wrapping and truncation control */
+  flex: 1;
 }
 
 .orderDetails h3 {
   font-size: 1rem;
   margin-bottom: 0.35rem;
   color: #f0fdf4;
+  word-break: break-word; /* Allows long product names to wrap smoothly */
+  overflow-wrap: break-word;
 }
 
 .statusBadge {
@@ -81,6 +97,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 @media (min-width: 600px) {
@@ -106,6 +123,12 @@
   color: #adcc14;
 }
 
+.buttonGroup {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap; /* Ensures buttons wrap cleanly on smaller mobile screens */
+}
+
 .trackBtn {
   background-color: #adcc14; 
   color: #0d1f12;
@@ -118,5 +141,27 @@
 }
 
 .trackBtn:hover {
-  background-color: green;
+  background-color: #84cc16;
+}
+
+.cancelBtn {
+  background-color: transparent;
+  color: #f87171; /* Soft warning red */
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+  background-color: rgba(248, 113, 113, 0.15);
+  border-color: #f87171;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #86efac;
 }
