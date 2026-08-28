@@ -24,11 +24,14 @@ export default function LoginPage() {
 
     const data = await res.json();
 
+    if (data.success) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = "/";
+    }
+
     if (!res.ok){
       throw new Error(data.message || 'Invalid Email or Password');
     }
-
-    window.location.href = '/';
   
   } catch (err: any) {
     setError(err.message);

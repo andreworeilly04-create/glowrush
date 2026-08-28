@@ -21,7 +21,7 @@ export default function OrdersPage() {
           headers: { 'Content-Type': 'application/json'},
           body:JSON.stringify({
             ...parsedOrder,
-            userId: currentUser.user_id || null,
+            user_id: currentUser.user_id || null,
             customerEmail: parsedOrder.customerEmail || 'N/A',
             shippingAddress: shippingInfo.address || parsedOrder.shippingAddress || 'N/A',
             phone:parsedOrder.phone || 'N/A'
@@ -29,12 +29,13 @@ export default function OrdersPage() {
         }).catch((err) => console.error('Failed to save to db:', err))
 
         const parsedItems = Array.isArray(parsedOrder.items) ? parsedOrder.items : [];
+        const safeItems = Array.isArray(parsedItems) ? parsedItems : [];
         const newOrder = {
           id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-          name: parsedItems
+          name: safeItems
             .map((i: any) => `${i.name} (Quantity: ${i.quantity || 1})`)
             .join(", "),
-          image: parsedItems[0]?.image || "",
+          image: safeItems[0]?.image || "",
           status: "Paid / Processing",
           price: `$${Number(parsedOrder.price || 0).toFixed(2)}`,
           shipping: `$${Number(parsedOrder.shipping || 0).toFixed(2)}`,
@@ -45,7 +46,7 @@ export default function OrdersPage() {
         localStorage.removeItem("recent_order");
       } else {
         if (userId){
-          fetch(`/api/orders.get?user_id=${userId}`)
+          fetch(`/api/orders/get?user_id=${userId}`)
           .then(res => res.json())
           .then(data => {
             if ( data.success && data.orders){

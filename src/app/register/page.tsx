@@ -1,5 +1,5 @@
 'use client'
-import { useState, SyntheticEvent } from 'react';
+import { useState,} from 'react';
 import Link from 'next/link';
 import styles from './page.register.module.css';
 
@@ -46,6 +46,7 @@ export default function RegisterPage() {
       if (!res.ok) {
         throw new Error(data.message || 'User already Exists')
       }
+      localStorage.setItem('user', JSON.stringify(data.user));
       window.location.href = '/';
     } catch (err:any) {
       setError(err.message);

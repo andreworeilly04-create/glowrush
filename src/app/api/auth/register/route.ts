@@ -35,13 +35,22 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await pool.query(
+    const [result]: any = await pool.query(
       "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)",
       [firstName, lastName, email, hashedPassword],
     );
 
+    const userId = result.insertId;
+
     const response = NextResponse.json(
-      { message: "User registered successfully" },
+      {
+        success: true,
+        message: "User registered successfully",
+        user: {
+          user_id: userId,
+          email: email,
+        },
+      },
       { status: 201 },
     );
 
@@ -52,7 +61,6 @@ export async function POST(request: Request) {
     });
 
     return response;
-
   } catch (error) {
     return NextResponse.json({ message: "Internal Server Error" });
   }
