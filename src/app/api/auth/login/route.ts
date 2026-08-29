@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const [rows]: any = await pool.query(
+    const [rows]: [any[], any] = await pool.query(
       'SELECT * FROM users WHERE email = ?',
       [email]
     );
