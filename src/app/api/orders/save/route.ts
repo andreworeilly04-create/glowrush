@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     const query = `
         INSERT INTO orders (user_id, items, price, shipping, tax, total, shipping_address, customer_email, phone, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, )
         `;
 
     await pool.execute(query, [

@@ -3,10 +3,10 @@ import { useState, SyntheticEvent } from 'react';
 import Link from 'next/link';
 import styles from './page.login.module.css';
 
-
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +19,7 @@ export default function LoginPage() {
     const res = await fetch('api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password}),
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
@@ -36,9 +36,10 @@ export default function LoginPage() {
   } catch (err: any) {
     setError(err.message);
   } finally {
-    setLoading(false)
+    setLoading(false);
   }
 };
+
   return (
     <main className={styles.container}>
       <div className={styles.loginCard}>
@@ -57,13 +58,22 @@ export default function LoginPage() {
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.subtitle} htmlFor="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              placeholder="Enter your password" 
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
+            <div className={styles.passwordWrapper}>
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                id="password" 
+                placeholder="Enter your password" 
+                onChange={(e) => setPassword(e.target.value)}
+                required 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)} 
+                className={styles.togglePassword}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={loading} className={styles.loginButton}>
             {loading ? 'Logging in...' : 'Sign In'}

@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import styles from './page.about.module.css';
+import Link from 'next/link';
 
 const About = () => {
   return (
@@ -61,9 +62,11 @@ const About = () => {
           <p className={styles.footerDesc}>
             Join the 2026 movement and discover our full lineup of specialty glowsticks and bulk party packages.
           </p>
-          <div className={styles.ctaButton}>
+          <Link href="/glowsticks"><button className={styles.ctaButton}>
             Explore Collection
-          </div>
+          </button>
+          </Link>
+          
         </div>
       </section>
     </div>

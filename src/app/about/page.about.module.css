@@ -191,12 +191,12 @@
   justify-content: center;
   padding: 0.75rem 1.5rem;
   border-radius: 0.75rem;
-  background: linear-gradient(to right, #adff2f, #7fff00);
+  background-color: #7fff00;
   color: #061a12;
   font-weight: 700;
   font-size: 0.875rem;
   box-shadow: 0 0 20px rgba(173, 255, 47, 0.4);
-  transition: opacity 200ms ease;
+  transition: all 200ms ease;
   cursor: pointer;
   text-decoration: none;
   border: none;
@@ -204,6 +204,9 @@
 
 .ctaButton:hover {
   opacity: 0.95;
+   transition: all 200ms ease;
+  background-color:green !important;
+  color:white;
 }
 
 /* Extra safety rule for narrow viewports (480px and below) */

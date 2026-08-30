@@ -57,7 +57,7 @@
   background-color: #051009;
   color: #ffffff;
   border-radius: 6px;
-  font-size: 16px; /* Prevents mobile browsers from auto-zooming */
+  font-size: 16px;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
@@ -71,6 +71,32 @@
 
 .inputGroup input::placeholder {
   color: #6b8e73;
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper input {
+  padding-right: 3rem;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: yellowgreen;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.togglePassword:hover {
+  color: green;
 }
 
 .loginButton {

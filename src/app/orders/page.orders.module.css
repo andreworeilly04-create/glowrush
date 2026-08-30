@@ -174,8 +174,8 @@
 }
 
 .emptyState p {
-  color: #86efac;
-  font-size: 1.1rem;
+  color: yellowgreen;
+  font-size: 1.4rem;
   margin: 0;
 }
 
@@ -193,6 +193,6 @@
 }
 
 .shopGlowBtn:hover {
-  background-color: #84cc16;
+  background-color: green;
   color: #ffffff;
 }

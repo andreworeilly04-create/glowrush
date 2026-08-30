@@ -11,7 +11,7 @@ export default function Footer(){
     return (
         <footer className={styles.footer}>
         <figure className={styles.footer_logo_container}>
-          <Image src={logo} className={styles.footer_logo} alt="GlowRush Logo" />
+          <Link href="/"><Image src={logo} className={styles.footer_logo} alt="GlowRush Logo" /></Link>
         </figure>
         <div className={styles.footer_links}>
           <Link href="/" className={`${styles.footer_link} ${pathname === "/" ? styles.active : ""}`}>Home</Link>

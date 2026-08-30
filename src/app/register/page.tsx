@@ -1,22 +1,24 @@
 'use client'
-import { useState,} from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import styles from './page.register.module.css';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     firstName: '',
-    lastName:'',
-    email:'',
-    password:'',
-    confirmPassword:'',
-  })
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ... formData, [e.target.id]: e.target.value });
-  }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -31,12 +33,12 @@ export default function RegisterPage() {
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json'},
-        body:JSON.stringify({ 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
-          password:formData.password,
+          password: formData.password,
           confirmPassword: formData.confirmPassword
         }),
       });
@@ -44,23 +46,22 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'User already Exists')
+        throw new Error(data.message || 'User already Exists');
       }
       localStorage.setItem('user', JSON.stringify(data.user));
       window.location.href = '/';
-    } catch (err:any) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
-
 
   return (
     <main className={styles.container}>
       <div className={styles.loginCard}>
         <h1 className={styles.title}>Create Account</h1>
-        {error && <p style={{ color:'red', fontSize: '14px'}}>{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.inputGroup}>
             <label className={styles.subtitle} htmlFor="firstName">First Name</label>
@@ -97,25 +98,43 @@ export default function RegisterPage() {
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.subtitle} htmlFor="password">Password</label>
-            <input 
-              type="password" 
-              id="password" 
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password" 
-              required 
-            />
+            <div className={styles.passwordWrapper}>
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                id="password" 
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password" 
+                required 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)} 
+                className={styles.togglePassword}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.subtitle} htmlFor="confirmPassword">Confirm Password</label>
-            <input 
-              type="password" 
-              id="confirmPassword" 
-              placeholder="Confirm your password" 
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required 
-            />
+            <div className={styles.passwordWrapper}>
+              <input 
+                type={showConfirmPassword ? 'text' : 'password'} 
+                id="confirmPassword" 
+                placeholder="Confirm your password" 
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required 
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                className={styles.togglePassword}
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={loading} className={styles.loginButton}>
             {loading ? 'Creating Account...' : 'Sign Up'}
