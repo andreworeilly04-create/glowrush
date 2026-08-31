@@ -50,8 +50,8 @@ export async function POST(req: Request) {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/orders?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/checkout?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://glowrush.vercel.app"}/orders?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://glowrush.vercel.app"}/checkout?canceled=true`,
     });
 
     return NextResponse.json({ url: session.url });
