@@ -32,25 +32,17 @@ export default function Header() {
      *
      * This replaces the old cookie-based login check.
      */
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        if (user) {
-          console.log(
-            "Header: Firebase user signed in:",
-            user.uid
-          );
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("Header: Firebase user signed in:", user.uid);
 
-          setIsLoggedIn(true);
-        } else {
-          console.log(
-            "Header: No Firebase user signed in."
-          );
+        setIsLoggedIn(true);
+      } else {
+        console.log("Header: No Firebase user signed in.");
 
-          setIsLoggedIn(false);
-        }
+        setIsLoggedIn(false);
       }
-    );
+    });
 
     return () => unsubscribe();
   }, []);
@@ -60,9 +52,7 @@ export default function Header() {
       /*
        * Sign the user out of Firebase Authentication.
        */
-      const { signOut } = await import(
-        "firebase/auth"
-      );
+      const { signOut } = await import("firebase/auth");
 
       await signOut(auth);
 
@@ -78,28 +68,19 @@ export default function Header() {
        */
       window.location.href = "/login";
     } catch (error) {
-      console.error(
-        "Logout error:",
-        error
-      );
+      console.error("Logout error:", error);
     }
   };
 
   const cartCount = cart.reduce(
-    (total: number, item: any) =>
-      total + (item.quantity || 1),
-    0
+    (total: number, item: any) => total + (item.quantity || 1),
+    0,
   );
 
   return (
     <>
-      <header
-        className={styles.header}
-        id="home"
-      >
-        <figure
-          className={styles.logo_container}
-        >
+      <header className={styles.header} id="home">
+        <figure className={styles.logo_container}>
           <Link href="/">
             <Image
               src={logo}
@@ -116,9 +97,7 @@ export default function Header() {
               <Link
                 href="/"
                 className={`${styles.nav_link} ${
-                  pathname === "/"
-                    ? styles.active
-                    : ""
+                  pathname === "/" ? styles.active : ""
                 }`}
               >
                 Home
@@ -129,9 +108,7 @@ export default function Header() {
               <Link
                 href="/glowsticks"
                 className={`${styles.nav_link} ${
-                  pathname === "/glowsticks"
-                    ? styles.active
-                    : ""
+                  pathname === "/glowsticks" ? styles.active : ""
                 }`}
               >
                 Glow Sticks
@@ -142,9 +119,7 @@ export default function Header() {
               <Link
                 href="/about"
                 className={`${styles.nav_link} ${
-                  pathname === "/about"
-                    ? styles.active
-                    : ""
+                  pathname === "/about" ? styles.active : ""
                 }`}
               >
                 About
@@ -155,9 +130,7 @@ export default function Header() {
               <Link
                 href="/contact"
                 className={`${styles.nav_link} ${
-                  pathname === "/contact"
-                    ? styles.active
-                    : ""
+                  pathname === "/contact" ? styles.active : ""
                 }`}
               >
                 Contact
@@ -166,48 +139,28 @@ export default function Header() {
           </ul>
         </nav>
 
-        <div
-          className={
-            styles.nav_icons_wrapper
-          }
-        >
+        <div className={styles.nav_icons_wrapper}>
           <ul className={styles.nav_icons}>
             <li
               className={`${styles.nav_user} ${styles.user_dropdown_container}`}
             >
               <button
                 className={styles.userLink}
-                onClick={() =>
-                  setUserDropdownOpen(
-                    !userDropdownOpen
-                  )
-                }
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                 aria-label="User Menu"
               >
-                <FontAwesomeIcon
-                  icon={faUser}
-                />
+                <FontAwesomeIcon icon={faUser} />
               </button>
 
               {userDropdownOpen && (
-                <ul
-                  className={
-                    styles.user_dropdown
-                  }
-                >
+                <ul className={styles.user_dropdown}>
                   {isLoggedIn ? (
                     <>
                       <li>
                         <Link
                           href="/orders"
-                          className={
-                            styles.user_dropdown_link
-                          }
-                          onClick={() =>
-                            setUserDropdownOpen(
-                              false
-                            )
-                          }
+                          className={styles.user_dropdown_link}
+                          onClick={() => setUserDropdownOpen(false)}
                         >
                           Orders
                         </Link>
@@ -215,12 +168,8 @@ export default function Header() {
 
                       <li>
                         <button
-                          className={
-                            styles.user_dropdown_link
-                          }
-                          onClick={
-                            handleLogout
-                          }
+                          className={styles.user_dropdown_link}
+                          onClick={handleLogout}
                         >
                           Logout
                         </button>
@@ -230,14 +179,8 @@ export default function Header() {
                     <li>
                       <Link
                         href="/login"
-                        className={
-                          styles.user_dropdown_link
-                        }
-                        onClick={() =>
-                          setUserDropdownOpen(
-                            false
-                          )
-                        }
+                        className={styles.user_dropdown_link}
+                        onClick={() => setUserDropdownOpen(false)}
                       >
                         Login
                       </Link>
@@ -247,69 +190,38 @@ export default function Header() {
               )}
             </li>
 
-            <li
-              className={styles.nav_cart}
-            >
-              <Link
-                className={styles.nav_link}
-                href="/cart"
-              >
-                <FontAwesomeIcon
-                  icon={faCartShopping}
-                />
+            <li className={styles.nav_cart}>
+              <Link className={styles.nav_link} href="/cart">
+                <FontAwesomeIcon icon={faCartShopping} />
               </Link>
 
               {cartCount > 0 && (
-                <span
-                  className={
-                    styles.cart_badge
-                  }
-                >
-                  {cartCount}
-                </span>
+                <span className={styles.cart_badge}>{cartCount}</span>
               )}
             </li>
           </ul>
 
           <button
             className={styles.menu_toggle}
-            onClick={() =>
-              setMenuOpen(!menuOpen)
-            }
+            onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle Menu"
           >
-            <FontAwesomeIcon
-              icon={
-                menuOpen
-                  ? faTimes
-                  : faBars
-              }
-            />
+            <FontAwesomeIcon icon={menuOpen ? faTimes : faBars} />
           </button>
         </div>
 
         <div
           className={`${styles.mobile_menu} ${
-            menuOpen
-              ? styles.mobile_menu_open
-              : ""
+            menuOpen ? styles.mobile_menu_open : ""
           }`}
         >
-          <ul
-            className={
-              styles.mobile_nav_links
-            }
-          >
+          <ul className={styles.mobile_nav_links}>
             <li>
               <Link
                 href="/"
-                onClick={() =>
-                  setMenuOpen(false)
-                }
+                onClick={() => setMenuOpen(false)}
                 className={`${styles.mobile_nav_link} ${
-                  pathname === "/"
-                    ? styles.active
-                    : ""
+                  pathname === "/" ? styles.active : ""
                 }`}
               >
                 Home
@@ -319,14 +231,9 @@ export default function Header() {
             <li>
               <Link
                 href="/glowsticks"
-                onClick={() =>
-                  setMenuOpen(false)
-                }
+                onClick={() => setMenuOpen(false)}
                 className={`${styles.mobile_nav_link} ${
-                  pathname ===
-                  "/glowsticks"
-                    ? styles.active
-                    : ""
+                  pathname === "/glowsticks" ? styles.active : ""
                 }`}
               >
                 Glow Sticks
@@ -336,13 +243,9 @@ export default function Header() {
             <li>
               <Link
                 href="/about"
-                onClick={() =>
-                  setMenuOpen(false)
-                }
+                onClick={() => setMenuOpen(false)}
                 className={`${styles.mobile_nav_link} ${
-                  pathname === "/about"
-                    ? styles.active
-                    : ""
+                  pathname === "/about" ? styles.active : ""
                 }`}
               >
                 About
@@ -352,13 +255,9 @@ export default function Header() {
             <li>
               <Link
                 href="/contact"
-                onClick={() =>
-                  setMenuOpen(false)
-                }
+                onClick={() => setMenuOpen(false)}
                 className={`${styles.mobile_nav_link} ${
-                  pathname === "/contact"
-                    ? styles.active
-                    : ""
+                  pathname === "/contact" ? styles.active : ""
                 }`}
               >
                 Contact
@@ -370,4 +269,3 @@ export default function Header() {
     </>
   );
 }
-

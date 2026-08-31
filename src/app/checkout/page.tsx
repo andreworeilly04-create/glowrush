@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { useCart } from "@/context/context";
 import styles from "./page.checkout.module.css";
@@ -52,6 +53,60 @@ export default function CheckoutPage() {
   const total = subtotal + shipping + tax;
 
   // ---------------------------------------------------------
+  // Get logged-in user ID
+  // ---------------------------------------------------------
+
+  const getUserId = (): string | null => {
+    try {
+      const rawUser = localStorage.getItem("user");
+
+      console.log(
+        "Checkout - localStorage user:",
+        rawUser
+      );
+
+      if (
+        !rawUser ||
+        rawUser === "undefined" ||
+        rawUser === "null"
+      ) {
+        return null;
+      }
+
+      const currentUser = JSON.parse(rawUser);
+
+      console.log(
+        "Checkout - parsed user:",
+        currentUser
+      );
+
+      const userId =
+        currentUser?.uid ||
+        currentUser?.user_id ||
+        currentUser?.id ||
+        null;
+
+      console.log(
+        "Checkout - Firebase user ID:",
+        userId
+      );
+
+      if (!userId) {
+        return null;
+      }
+
+      return String(userId);
+    } catch (error) {
+      console.error(
+        "Checkout - failed to read user:",
+        error
+      );
+
+      return null;
+    }
+  };
+
+  // ---------------------------------------------------------
   // Handle checkout
   // ---------------------------------------------------------
 
@@ -68,38 +123,16 @@ export default function CheckoutPage() {
       setProcessing(true);
 
       // -----------------------------------------------------
-      // Get the current user
+      // Get Firebase user ID
       // -----------------------------------------------------
 
-      let currentUser: any = {};
+      const userId = getUserId();
 
-      try {
-        const rawUser = localStorage.getItem("user");
-
-        if (
-          rawUser &&
-          rawUser !== "undefined" &&
-          rawUser !== "null"
-        ) {
-          currentUser = JSON.parse(rawUser);
-        }
-      } catch (error) {
-        console.error(
-          "Failed to read user from localStorage:",
-          error
+      if (!userId) {
+        throw new Error(
+          "You must be logged in before placing an order."
         );
       }
-
-      // -----------------------------------------------------
-      // Get user ID
-      // -----------------------------------------------------
-
-      const userId =
-        currentUser?.user_id ||
-        currentUser?.id ||
-        currentUser?.uid ||
-        null;
-        
 
       // -----------------------------------------------------
       // Build shipping address
@@ -115,65 +148,150 @@ export default function CheckoutPage() {
         .join(", ");
 
       // -----------------------------------------------------
-      // Build the order
+      // Build order
       // -----------------------------------------------------
 
       const orderData = {
-        user_id: String(userId),
+        user_id: userId,
 
         items: cart,
 
-        price: Number(subtotal.toFixed(2)),
+        price: Number(
+          subtotal.toFixed(2)
+        ),
 
-        shipping: Number(shipping.toFixed(2)),
+        shipping: Number(
+          shipping.toFixed(2)
+        ),
 
-        tax: Number(tax.toFixed(2)),
+        tax: Number(
+          tax.toFixed(2)
+        ),
 
-        total: Number(total.toFixed(2)),
+        total: Number(
+          total.toFixed(2)
+        ),
 
         phone: formData.phone,
 
         shippingAddress,
 
-        customerEmail: formData.email,
+        customerEmail:
+          formData.email.trim().toLowerCase(),
 
         status: "Paid / Processing",
 
-        createdAt: new Date().toISOString(),
+        createdAt:
+          new Date().toISOString(),
       };
 
       console.log(
-        "Order being prepared:",
+        "Checkout - order being prepared:",
         orderData
       );
 
       // -----------------------------------------------------
-      // Save order information locally.
-      //
-      // Your current Orders page uses this value to save the
-      // order to Firestore after returning to /orders.
+      // Save order to Firebase
+      // -----------------------------------------------------
+
+      console.log(
+        "Checkout - saving order to Firebase..."
+      );
+
+      const saveResponse = await fetch(
+        "/api/orders/save",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify(
+            orderData
+          ),
+        }
+      );
+
+      const saveText =
+        await saveResponse.text();
+
+      let saveData: any = {};
+
+      try {
+        saveData = saveText
+          ? JSON.parse(saveText)
+          : {};
+      } catch {
+        console.error(
+          "Checkout - invalid save order response:",
+          saveText
+        );
+
+        throw new Error(
+          "The order server returned an invalid response."
+        );
+      }
+
+      console.log(
+        "Checkout - save order response:",
+        saveData
+      );
+
+      if (!saveResponse.ok || !saveData.success) {
+        throw new Error(
+          saveData?.error ||
+            saveData?.message ||
+            "Failed to save your order."
+        );
+      }
+
+      console.log(
+        "Checkout - order saved successfully:",
+        saveData.orderId
+      );
+
+      // -----------------------------------------------------
+      // Save recent order locally as a backup
       // -----------------------------------------------------
 
       localStorage.setItem(
         "recent_order",
-        JSON.stringify(orderData)
+        JSON.stringify({
+          ...orderData,
+          orderId:
+            saveData.orderId || null,
+        })
       );
 
       // -----------------------------------------------------
-      // Save shipping information separately because your
-      // current Orders page also looks for shipped_address.
+      // Save shipping information locally
       // -----------------------------------------------------
 
       localStorage.setItem(
         "shipped_address",
         JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
+          fullName:
+            formData.fullName,
+
+          email:
+            formData.email,
+
+          phone:
+            formData.phone,
+
+          address:
+            formData.address,
+
+          city:
+            formData.city,
+
+          state:
+            formData.state,
+
+          zipCode:
+            formData.zipCode,
         })
       );
 
@@ -181,13 +299,18 @@ export default function CheckoutPage() {
       // Create Stripe Checkout Session
       // -----------------------------------------------------
 
+      console.log(
+        "Checkout - creating Stripe session..."
+      );
+
       const response = await fetch(
         "/api/webhook",
         {
           method: "POST",
 
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
 
           body: JSON.stringify({
@@ -198,13 +321,16 @@ export default function CheckoutPage() {
         }
       );
 
-      const text = await response.text();
+      const text =
+        await response.text();
 
       let data: any = {};
 
       try {
-        data = text ? JSON.parse(text) : {};
-      } catch (error) {
+        data = text
+          ? JSON.parse(text)
+          : {};
+      } catch {
         console.error(
           "Invalid response from checkout API:",
           text
@@ -214,6 +340,11 @@ export default function CheckoutPage() {
           "Invalid response from checkout server."
         );
       }
+
+      console.log(
+        "Checkout - Stripe response:",
+        data
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -228,7 +359,9 @@ export default function CheckoutPage() {
       // -----------------------------------------------------
 
       if (data.url) {
-        window.location.href = data.url;
+        window.location.href =
+          data.url;
+
         return;
       }
 
@@ -256,23 +389,43 @@ export default function CheckoutPage() {
 
   if (cart.length === 0) {
     return (
-      <div className={styles.checkoutContainer}>
-        <div className={styles.emptyState}>
-          <h2>Your cart is empty!</h2>
+      <div
+        className={
+          styles.checkoutContainer
+        }
+      >
+        <div
+          className={
+            styles.emptyState
+          }
+        >
+          <h2>
+            Your cart is empty!
+          </h2>
 
-          <p style={{ margin: "15px 0" }}>
-            Add some glowsticks before heading to checkout.
+          <p
+            style={{
+              margin: "15px 0",
+            }}
+          >
+            Add some glowsticks before
+            heading to checkout.
           </p>
 
           <Link
             href="/glowsticks"
-            className={styles.placeOrderBtn}
+            className={
+              styles.placeOrderBtn
+            }
             style={{
-              display: "inline-block",
-              textDecoration: "none",
+              display:
+                "inline-block",
+              textDecoration:
+                "none",
               textAlign: "center",
               width: "auto",
-              padding: "10px 20px",
+              padding:
+                "10px 20px",
             }}
           >
             Browse Glow Sticks
@@ -287,25 +440,47 @@ export default function CheckoutPage() {
   // ---------------------------------------------------------
 
   return (
-    <div className={styles.checkoutContainer}>
-      <h1 className={styles.checkoutTitle}>
+    <div
+      className={
+        styles.checkoutContainer
+      }
+    >
+      <h1
+        className={
+          styles.checkoutTitle
+        }
+      >
         Checkout
       </h1>
 
       <form
         onSubmit={handleCheckout}
-        className={styles.checkoutGrid}
+        className={
+          styles.checkoutGrid
+        }
       >
         {/* -------------------------------------------------
             Delivery Information
         -------------------------------------------------- */}
 
-        <div className={styles.checkoutForm}>
-          <h2 className={styles.sectionTitle}>
+        <div
+          className={
+            styles.checkoutForm
+          }
+        >
+          <h2
+            className={
+              styles.sectionTitle
+            }
+          >
             Delivery Information
           </h2>
 
-          <div className={styles.formGroup}>
+          <div
+            className={
+              styles.formGroup
+            }
+          >
             <label htmlFor="fullName">
               Full Name
             </label>
@@ -315,14 +490,24 @@ export default function CheckoutPage() {
               id="fullName"
               name="fullName"
               required
-              className={styles.formInput}
-              value={formData.fullName}
-              onChange={handleChange}
+              className={
+                styles.formInput
+              }
+              value={
+                formData.fullName
+              }
+              onChange={
+                handleChange
+              }
               placeholder="Andrew Smith"
             />
           </div>
 
-          <div className={styles.formGroup}>
+          <div
+            className={
+              styles.formGroup
+            }
+          >
             <label htmlFor="email">
               Email Address
             </label>
@@ -332,14 +517,24 @@ export default function CheckoutPage() {
               id="email"
               name="email"
               required
-              className={styles.formInput}
-              value={formData.email}
-              onChange={handleChange}
+              className={
+                styles.formInput
+              }
+              value={
+                formData.email
+              }
+              onChange={
+                handleChange
+              }
               placeholder="andrew@example.com"
             />
           </div>
 
-          <div className={styles.formGroup}>
+          <div
+            className={
+              styles.formGroup
+            }
+          >
             <label htmlFor="phone">
               Phone Number
             </label>
@@ -349,14 +544,24 @@ export default function CheckoutPage() {
               id="phone"
               name="phone"
               required
-              className={styles.formInput}
-              value={formData.phone}
-              onChange={handleChange}
+              className={
+                styles.formInput
+              }
+              value={
+                formData.phone
+              }
+              onChange={
+                handleChange
+              }
               placeholder="(352) 555-0199"
             />
           </div>
 
-          <div className={styles.formGroup}>
+          <div
+            className={
+              styles.formGroup
+            }
+          >
             <label htmlFor="address">
               Street Address
             </label>
@@ -366,22 +571,33 @@ export default function CheckoutPage() {
               id="address"
               name="address"
               required
-              className={styles.formInput}
-              value={formData.address}
-              onChange={handleChange}
+              className={
+                styles.formInput
+              }
+              value={
+                formData.address
+              }
+              onChange={
+                handleChange
+              }
               placeholder="123 Glow Street"
             />
           </div>
 
           <div
             style={{
-              display: "grid",
+              display:
+                "grid",
               gridTemplateColumns:
                 "1fr 1fr 1fr",
               gap: "10px",
             }}
           >
-            <div className={styles.formGroup}>
+            <div
+              className={
+                styles.formGroup
+              }
+            >
               <label htmlFor="city">
                 City
               </label>
@@ -391,14 +607,24 @@ export default function CheckoutPage() {
                 id="city"
                 name="city"
                 required
-                className={styles.formInput}
-                value={formData.city}
-                onChange={handleChange}
+                className={
+                  styles.formInput
+                }
+                value={
+                  formData.city
+                }
+                onChange={
+                  handleChange
+                }
                 placeholder="Gainesville"
               />
             </div>
 
-            <div className={styles.formGroup}>
+            <div
+              className={
+                styles.formGroup
+              }
+            >
               <label htmlFor="state">
                 State
               </label>
@@ -408,14 +634,24 @@ export default function CheckoutPage() {
                 id="state"
                 name="state"
                 required
-                className={styles.formInput}
-                value={formData.state}
-                onChange={handleChange}
+                className={
+                  styles.formInput
+                }
+                value={
+                  formData.state
+                }
+                onChange={
+                  handleChange
+                }
                 placeholder="FL"
               />
             </div>
 
-            <div className={styles.formGroup}>
+            <div
+              className={
+                styles.formGroup
+              }
+            >
               <label htmlFor="zipCode">
                 Zip Code
               </label>
@@ -425,9 +661,15 @@ export default function CheckoutPage() {
                 id="zipCode"
                 name="zipCode"
                 required
-                className={styles.formInput}
-                value={formData.zipCode}
-                onChange={handleChange}
+                className={
+                  styles.formInput
+                }
+                value={
+                  formData.zipCode
+                }
+                onChange={
+                  handleChange
+                }
                 placeholder="32601"
               />
             </div>
@@ -438,27 +680,44 @@ export default function CheckoutPage() {
             Order Summary
         -------------------------------------------------- */}
 
-        <div className={styles.summaryColumn}>
-          <h2 className={styles.sectionTitle}>
+        <div
+          className={
+            styles.summaryColumn
+          }
+        >
+          <h2
+            className={
+              styles.sectionTitle
+            }
+          >
             Order Summary
           </h2>
 
-          <div className={styles.summaryList}>
+          <div
+            className={
+              styles.summaryList
+            }
+          >
             {cart.map(
               (
                 item: any,
                 index: number
               ) => {
                 const itemQuantity =
-                  Number(item.quantity) || 1;
+                  Number(
+                    item.quantity
+                  ) || 1;
 
                 const itemPrice =
-                  Number(item.price) || 0;
+                  Number(
+                    item.price
+                  ) || 0;
 
                 return (
                   <div
                     key={
-                      item.id || index
+                      item.id ||
+                      index
                     }
                     className={
                       styles.summaryItem
@@ -470,7 +729,9 @@ export default function CheckoutPage() {
                       }
                     >
                       <Image
-                        src={item.image}
+                        src={
+                          item.image
+                        }
                         alt={
                           item.name ||
                           "Glow Stick"
@@ -493,7 +754,9 @@ export default function CheckoutPage() {
                           styles.itemName
                         }
                       >
-                        {item.name}
+                        {
+                          item.name
+                        }
                       </h3>
 
                       <span
@@ -502,7 +765,9 @@ export default function CheckoutPage() {
                         }
                       >
                         Qty:{" "}
-                        {itemQuantity}
+                        {
+                          itemQuantity
+                        }
                       </span>
 
                       <span
@@ -514,7 +779,9 @@ export default function CheckoutPage() {
                         {(
                           itemPrice *
                           itemQuantity
-                        ).toFixed(2)}
+                        ).toFixed(
+                          2
+                        )}
                       </span>
                     </div>
                   </div>
@@ -615,7 +882,9 @@ export default function CheckoutPage() {
             className={
               styles.placeOrderBtn
             }
-            disabled={processing}
+            disabled={
+              processing
+            }
           >
             {processing
               ? "Processing..."

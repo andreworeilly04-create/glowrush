@@ -4,9 +4,24 @@ import {
   useEffect,
   useState,
 } from "react";
+
 import styles from "./page.orders.module.css";
 import Image from "next/image";
 import Link from "next/link";
+
+import {
+  onAuthStateChanged,
+} from "firebase/auth";
+
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+} from "firebase/firestore";
+
+import { auth, db } from "@/lib/db";
 
 type Order = {
   id: string;
@@ -22,69 +37,17 @@ type Order = {
 export default function OrdersPage() {
   const [orders, setOrders] =
     useState<Order[]>([]);
+
   const [loading, setLoading] =
     useState(true);
+
   const [trackingOrder, setTrackingOrder] =
     useState<string | null>(null);
 
   // --------------------------------------------------
-  // Get logged-in user's ID
+  // Format Firestore orders
   // --------------------------------------------------
-  const getUserId = (): string | null => {
-    try {
-      const rawUser =
-        localStorage.getItem("user");
 
-      console.log(
-        "Orders - localStorage user:",
-        rawUser
-      );
-
-      if (
-        !rawUser ||
-        rawUser === "undefined" ||
-        rawUser === "null"
-      ) {
-        return null;
-      }
-
-      const currentUser =
-        JSON.parse(rawUser);
-
-      console.log(
-        "Orders - parsed user:",
-        currentUser
-      );
-
-      const userId =
-        currentUser?.user_id ||
-        currentUser?.id ||
-        currentUser?.uid ||
-        null;
-
-      console.log(
-        "Orders - user ID:",
-        userId
-      );
-
-      if (!userId) {
-        return null;
-      }
-
-      return String(userId);
-    } catch (error) {
-      console.error(
-        "Orders - failed to read user:",
-        error
-      );
-
-      return null;
-    }
-  };
-
-  // --------------------------------------------------
-  // Format orders
-  // --------------------------------------------------
   const formatOrders = (
     databaseOrders: any[]
   ): Order[] => {
@@ -163,141 +126,171 @@ export default function OrdersPage() {
   };
 
   // --------------------------------------------------
-  // Fetch orders
+  // Load orders directly from Firebase
   // --------------------------------------------------
+
   const loadOrders = async (
     userId: string
   ) => {
     try {
       console.log(
-        "Orders - fetching orders for:",
+        "Orders - loading Firebase orders for UID:",
         userId
       );
 
-      const response = await fetch(
-        `/api/orders/get?user_id=${encodeURIComponent(
+      const ordersRef =
+        collection(db, "orders");
+
+      const q = query(
+        ordersRef,
+        where(
+          "user_id",
+          "==",
           userId
-        )}&t=${Date.now()}`,
-        {
-          method: "GET",
-          cache: "no-store",
-          headers: {
-            "Cache-Control":
-              "no-cache",
-          },
+        )
+      );
+
+      const querySnapshot =
+        await getDocs(q);
+
+      console.log(
+        "Orders - Firebase documents found:",
+        querySnapshot.size
+      );
+
+      const databaseOrders =
+        querySnapshot.docs.map(
+          (doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })
+        );
+
+      /*
+       * Sort newest orders first.
+       *
+       * We do this in JavaScript instead
+       * of requiring a Firestore index.
+       */
+      databaseOrders.sort(
+        (a: any, b: any) => {
+          const dateA = new Date(
+            a.createdAt || 0
+          ).getTime();
+
+          const dateB = new Date(
+            b.createdAt || 0
+          ).getTime();
+
+          return dateB - dateA;
         }
       );
 
-      const text =
-        await response.text();
-
-      let data: any;
-
-      try {
-        data = text
-          ? JSON.parse(text)
-          : {};
-      } catch {
-        console.error(
-          "Orders - API returned invalid JSON:",
-          text
+      const formattedOrders =
+        formatOrders(
+          databaseOrders
         );
-
-        throw new Error(
-          "Invalid response from orders API"
-        );
-      }
 
       console.log(
-        "Orders - API response:",
-        data
+        "Orders - formatted orders:",
+        formattedOrders
       );
 
-      if (!response.ok) {
-        throw new Error(
-          data?.error ||
-            data?.message ||
-            "Failed to load orders"
-        );
-      }
-
-      if (
-        data.success &&
-        Array.isArray(data.orders)
-      ) {
-        const formattedOrders =
-          formatOrders(data.orders);
-
-        console.log(
-          "Orders - found:",
-          formattedOrders
-        );
-
-        setOrders(
-          formattedOrders
-        );
-      } else {
-        console.warn(
-          "Orders - no orders found:",
-          data?.error
-        );
-
-        setOrders([]);
-      }
+      setOrders(
+        formattedOrders
+      );
     } catch (error) {
       console.error(
-        "Orders - fetch error:",
+        "Orders - Firebase fetch error:",
         error
       );
 
       setOrders([]);
-    } finally {
-      setLoading(false);
     }
   };
 
   // --------------------------------------------------
-  // Load orders when page opens
+  // Watch Firebase authentication
   // --------------------------------------------------
-  useEffect(() => {
-    const userId =
-      getUserId();
 
-    if (!userId) {
-      console.warn(
-        "Orders page cannot load orders because no user ID was found."
+  useEffect(() => {
+    console.log(
+      "Orders - waiting for Firebase authentication..."
+    );
+
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        async (firebaseUser) => {
+          try {
+            if (!firebaseUser) {
+              console.warn(
+                "Orders - no Firebase user is signed in."
+              );
+
+              setOrders([]);
+              setLoading(false);
+
+              return;
+            }
+
+            console.log(
+              "Orders - Firebase user:",
+              firebaseUser
+            );
+
+            console.log(
+              "Orders - Firebase UID:",
+              firebaseUser.uid
+            );
+
+            await loadOrders(
+              firebaseUser.uid
+            );
+          } catch (error) {
+            console.error(
+              "Orders - authentication error:",
+              error
+            );
+
+            setOrders([]);
+          } finally {
+            setLoading(false);
+          }
+        }
       );
 
-      setOrders([]);
-      setLoading(false);
-
-      return;
-    }
-
-    loadOrders(userId);
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   // --------------------------------------------------
   // Track / refresh order
   // --------------------------------------------------
+
   const trackOrder = async (
     orderId: string
   ) => {
     try {
-      setTrackingOrder(orderId);
+      setTrackingOrder(
+        orderId
+      );
 
-      const userId =
-        getUserId();
+      const firebaseUser =
+        auth.currentUser;
 
-      if (!userId) {
+      if (!firebaseUser) {
         console.error(
-          "Cannot track order because no user ID was found."
+          "Cannot track order because no Firebase user is signed in."
         );
 
         return;
       }
 
-      await loadOrders(userId);
+      await loadOrders(
+        firebaseUser.uid
+      );
     } catch (error) {
       console.error(
         "Failed to track order:",
@@ -311,8 +304,11 @@ export default function OrdersPage() {
   // --------------------------------------------------
   // Cancel order
   // --------------------------------------------------
+
   const handleCancelOrder =
-    async (orderId: string) => {
+    async (
+      orderId: string
+    ) => {
       try {
         const firestoreId =
           orderId.startsWith(
@@ -326,10 +322,12 @@ export default function OrdersPage() {
             "/api/orders/delete",
             {
               method: "POST",
+
               headers: {
                 "Content-Type":
                   "application/json",
               },
+
               body: JSON.stringify({
                 id: firestoreId,
               }),
@@ -356,7 +354,9 @@ export default function OrdersPage() {
 
         if (data.success) {
           setOrders(
-            (previousOrders) =>
+            (
+              previousOrders
+            ) =>
               previousOrders.filter(
                 (order) =>
                   order.id !==
@@ -380,12 +380,17 @@ export default function OrdersPage() {
   // --------------------------------------------------
   // Render
   // --------------------------------------------------
+
   return (
     <div
-      className={styles.container}
+      className={
+        styles.container
+      }
     >
       <h1
-        className={styles.title}
+        className={
+          styles.title
+        }
       >
         Your Orders
       </h1>
@@ -460,7 +465,9 @@ export default function OrdersPage() {
                     }
                   >
                     <h3>
-                      {order.name}
+                      {
+                        order.name
+                      }
                     </h3>
 
                     <span
@@ -469,7 +476,9 @@ export default function OrdersPage() {
                       }
                     >
                       Status:{" "}
-                      {order.status}
+                      {
+                        order.status
+                      }
                     </span>
                   </div>
                 </div>
@@ -512,7 +521,9 @@ export default function OrdersPage() {
                   >
                     Tax:{" "}
                     <span>
-                      {order.tax}
+                      {
+                        order.tax
+                      }
                     </span>
                   </div>
 
