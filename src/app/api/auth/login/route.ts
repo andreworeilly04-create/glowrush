@@ -1,53 +1,90 @@
-import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
-import bcrypt from 'bcrypt';
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import bcrypt from "bcrypt";
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const rawEmail = body.email;
+    const password = body.password;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    if (!rawEmail || !password) {
+      return NextResponse.json(
+        { success: false, error: "Email and password are required" },
+        { status: 400 }
+      );
     }
 
-    const [rows]: [any[], any] = await pool.query(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
+    const normalizedEmail = rawEmail.trim().toLowerCase();
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", normalizedEmail));
+    const querySnapshot = await getDocs(q);
 
-    if (rows.length === 0) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
+    if (querySnapshot.empty) {
+      console.log(`Login failed: No user found for email -> ${normalizedEmail}`);
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 401 }
+      );
     }
 
-    const user = rows[0];
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data();
+    const userId = userDoc.id;
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    // Check common password field keys used during registration
+    const storedPasswordHash = userData.password || userData.passwordHash || userData.hashedPassword;
+
+    if (!storedPasswordHash) {
+      console.error(`Login error: User document ${userId} is missing a password hash field.`);
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 400 }
+      );
+    }
+
+    const passwordMatch = await bcrypt.compare(password, storedPasswordHash);
 
     if (!passwordMatch) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 400 });
+      console.log(`Login failed: Password mismatch for user -> ${normalizedEmail}`);
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 400 }
+      );
     }
 
+    const user = {
+      id: userId,
+      user_id: userId,
+      uid: userId,
+      _id: userId,
+      email: userData.email || normalizedEmail,
+      firstName: userData.firstName || "",
+      lastName: userData.lastName || "",
+      name: `${userData.firstName || ""} ${userData.lastName || ""}`.trim(),
+    };
+
     const response = NextResponse.json({
-      success:true,
-      message:'Logged in successfully',
-      user: {
-        user_id: user.id,
-        email: user.email
-      }
-  });
+      success: true,
+      message: "Logged in successfully",
+      user: user,
+    });
 
     response.cookies.set({
-      name:'session',
-      value: email,
-      path:'/',
+      name: "session",
+      value: userId,
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
     });
 
     return response;
-
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Critical login route error:", error);
     return NextResponse.json(
-      { message: 'Internal Server Error' },
+      { success: false, error: "Internal Server Error" },
       { status: 500 }
     );
   }

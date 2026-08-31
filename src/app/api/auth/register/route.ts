@@ -1,67 +1,105 @@
 import { NextResponse } from "next/server";
-import pool from "@/lib/db";
-import bcrypt from "bcrypt";
+import { db } from "@/lib/db";
+import {
+  collection,
+  doc,
+  setDoc,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 
 export async function POST(request: Request) {
   try {
-    const { firstName, lastName, email, password, confirmPassword } =
-      await request.json();
+    const body = await request.json();
 
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+    const uid = typeof body.uid === "string" ? body.uid.trim() : "";
+
+    const firstName =
+      typeof body.firstName === "string" ? body.firstName.trim() : "";
+
+    const lastName =
+      typeof body.lastName === "string" ? body.lastName.trim() : "";
+
+    const rawEmail = typeof body.email === "string" ? body.email : "";
+
+    if (!uid || !firstName || !lastName || !rawEmail) {
       return NextResponse.json(
-        { message: "Missing required fields " },
-        { status: 400 },
-      );
-    }
-
-    const [existingRows]: any = await pool.query(
-      "SELECT * FROM users WHERE email = ?",
-      [email],
-    );
-
-    if (existingRows.length > 0) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 400 },
-      );
-    }
-
-    if (password !== confirmPassword) {
-      return NextResponse.json(
-        { message: "Passwords do not match " },
-        { status: 400 },
-      );
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const [result]: any = await pool.query(
-      "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)",
-      [firstName, lastName, email, hashedPassword],
-    );
-
-    const userId = result.insertId;
-
-    const response = NextResponse.json(
-      {
-        success: true,
-        message: "User registered successfully",
-        user: {
-          user_id: userId,
-          email: email,
+        {
+          success: false,
+          message: "Missing required fields",
         },
+        { status: 400 },
+      );
+    }
+
+    const email = rawEmail.trim().toLowerCase();
+
+    const usersRef = collection(db, "users");
+
+    // Check whether this Firebase UID already has a profile.
+    const userDocRef = doc(db, "users", uid);
+
+    const existingUserQuery = query(usersRef, where("email", "==", email));
+
+    const existingUserSnapshot = await getDocs(existingUserQuery);
+
+    // If the email belongs to a different UID, prevent
+    // accidentally overwriting another user's profile.
+    if (!existingUserSnapshot.empty) {
+      const existingDoc = existingUserSnapshot.docs[0];
+
+      if (existingDoc.id !== uid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User already exists",
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Create/update the Firestore profile using the
+    // Firebase Authentication UID as the document ID.
+    await setDoc(
+      userDocRef,
+      {
+        firstName,
+        lastName,
+        email,
+        uid,
+        updatedAt: new Date().toISOString(),
       },
-      { status: 201 },
+      {
+        merge: true,
+      },
     );
 
-    response.cookies.set({
-      name: "session",
-      value: email,
-      path: "/",
-    });
+    const user = {
+      id: uid,
+      user_id: uid,
+      uid,
+      email,
+      firstName,
+      lastName,
+      name: `${firstName} ${lastName}`.trim(),
+    };
 
-    return response;
+    return NextResponse.json({
+      success: true,
+      message: "User profile created successfully",
+      user,
+    });
   } catch (error) {
-    return NextResponse.json({ message: "Internal Server Error" });
+    console.error("Registration route error:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal Server Error",
+      },
+      { status: 500 },
+    );
   }
 }

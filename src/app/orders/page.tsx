@@ -1,359 +1,579 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import {
+  useEffect,
+  useState,
+} from "react";
 import styles from "./page.orders.module.css";
 import Image from "next/image";
 import Link from "next/link";
 
+type Order = {
+  id: string;
+  name: string;
+  image: string;
+  status: string;
+  price: string;
+  shipping: string;
+  tax: string;
+  total: string;
+};
+
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [trackingOrder, setTrackingOrder] = useState<string | null>(null);
+  const [orders, setOrders] =
+    useState<Order[]>([]);
+  const [loading, setLoading] =
+    useState(true);
+  const [trackingOrder, setTrackingOrder] =
+    useState<string | null>(null);
 
-  // Format orders from database
-  const formatOrders = (databaseOrders: any[]) => {
-    return databaseOrders.map((o: any) => {
-      let parsedItems: any[] = [];
+  // --------------------------------------------------
+  // Get logged-in user's ID
+  // --------------------------------------------------
+  const getUserId = (): string | null => {
+    try {
+      const rawUser =
+        localStorage.getItem("user");
 
-      try {
-        parsedItems =
-          typeof o.items === "string"
-            ? JSON.parse(o.items)
-            : o.items || [];
-      } catch (e) {
-        console.error("Failed to parse order items:", e);
-        parsedItems = [];
+      console.log(
+        "Orders - localStorage user:",
+        rawUser
+      );
+
+      if (
+        !rawUser ||
+        rawUser === "undefined" ||
+        rawUser === "null"
+      ) {
+        return null;
       }
 
-      return {
-        id: `ORD-${o.id}`,
-        name: Array.isArray(parsedItems)
-          ? parsedItems
-              .map(
-                (i: any) =>
-                  `${i.name} (Quantity: ${i.quantity || 1})`
-              )
-              .join(", ")
-          : "",
-        image: parsedItems[0]?.image || "",
-        status: o.status || "Paid / Processing",
-        price: `$${Number(o.price || 0).toFixed(2)}`,
-        shipping: `$${Number(o.shipping || 0).toFixed(2)}`,
-        tax: `$${Number(o.tax || 0).toFixed(2)}`,
-        total: `$${Number(o.total || 0).toFixed(2)}`,
-      };
-    });
+      const currentUser =
+        JSON.parse(rawUser);
+
+      console.log(
+        "Orders - parsed user:",
+        currentUser
+      );
+
+      const userId =
+        currentUser?.user_id ||
+        currentUser?.id ||
+        currentUser?.uid ||
+        null;
+
+      console.log(
+        "Orders - user ID:",
+        userId
+      );
+
+      if (!userId) {
+        return null;
+      }
+
+      return String(userId);
+    } catch (error) {
+      console.error(
+        "Orders - failed to read user:",
+        error
+      );
+
+      return null;
+    }
   };
 
-  // Load orders from MySQL
-  const loadOrders = async (userId: any) => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+  // --------------------------------------------------
+  // Format orders
+  // --------------------------------------------------
+  const formatOrders = (
+    databaseOrders: any[]
+  ): Order[] => {
+    return databaseOrders.map(
+      (order: any) => {
+        let items: any[] = [];
 
+        try {
+          if (
+            Array.isArray(order.items)
+          ) {
+            items = order.items;
+          } else if (
+            typeof order.items ===
+              "string" &&
+            order.items.trim() !== ""
+          ) {
+            items = JSON.parse(
+              order.items
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Could not parse order items:",
+            error
+          );
+        }
+
+        const firstItem =
+          items.length > 0
+            ? items[0]
+            : null;
+
+        const name =
+          items.length > 0
+            ? items
+                .map(
+                  (item: any) =>
+                    `${item?.name || "Item"} (Quantity: ${
+                      item?.quantity || 1
+                    })`
+                )
+                .join(", ")
+            : "GlowRush Order";
+
+        return {
+          id: `ORD-${order.id}`,
+
+          name,
+
+          image:
+            firstItem?.image || "",
+
+          status:
+            order.status ||
+            "Paid / Processing",
+
+          price: `$${Number(
+            order.price || 0
+          ).toFixed(2)}`,
+
+          shipping: `$${Number(
+            order.shipping || 0
+          ).toFixed(2)}`,
+
+          tax: `$${Number(
+            order.tax || 0
+          ).toFixed(2)}`,
+
+          total: `$${Number(
+            order.total || 0
+          ).toFixed(2)}`,
+        };
+      }
+    );
+  };
+
+  // --------------------------------------------------
+  // Fetch orders
+  // --------------------------------------------------
+  const loadOrders = async (
+    userId: string
+  ) => {
     try {
-      const res = await fetch(
-        `/api/orders/get?user_id=${userId}`,
+      console.log(
+        "Orders - fetching orders for:",
+        userId
+      );
+
+      const response = await fetch(
+        `/api/orders/get?user_id=${encodeURIComponent(
+          userId
+        )}&t=${Date.now()}`,
         {
+          method: "GET",
           cache: "no-store",
+          headers: {
+            "Cache-Control":
+              "no-cache",
+          },
         }
       );
 
-      const data = await res.json();
+      const text =
+        await response.text();
 
-      if (data.success && data.orders) {
-        const formattedOrders = formatOrders(data.orders);
-        setOrders(formattedOrders);
-      } else {
-        console.error("Failed to load orders:", data.error);
+      let data: any;
+
+      try {
+        data = text
+          ? JSON.parse(text)
+          : {};
+      } catch {
+        console.error(
+          "Orders - API returned invalid JSON:",
+          text
+        );
+
+        throw new Error(
+          "Invalid response from orders API"
+        );
       }
-    } catch (err) {
-      console.error("Failed to fetch orders:", err);
+
+      console.log(
+        "Orders - API response:",
+        data
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            data?.message ||
+            "Failed to load orders"
+        );
+      }
+
+      if (
+        data.success &&
+        Array.isArray(data.orders)
+      ) {
+        const formattedOrders =
+          formatOrders(data.orders);
+
+        console.log(
+          "Orders - found:",
+          formattedOrders
+        );
+
+        setOrders(
+          formattedOrders
+        );
+      } else {
+        console.warn(
+          "Orders - no orders found:",
+          data?.error
+        );
+
+        setOrders([]);
+      }
+    } catch (error) {
+      console.error(
+        "Orders - fetch error:",
+        error
+      );
+
+      setOrders([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // --------------------------------------------------
+  // Load orders when page opens
+  // --------------------------------------------------
   useEffect(() => {
-    const initializeOrders = async () => {
-      try {
-        const savedCart = localStorage.getItem("recent_order");
+    const userId =
+      getUserId();
 
-        const currentUser = JSON.parse(
-          localStorage.getItem("user") || "{}"
-        );
+    if (!userId) {
+      console.warn(
+        "Orders page cannot load orders because no user ID was found."
+      );
 
-        const shippingInfo = JSON.parse(
-          localStorage.getItem("shipping_address") || "{}"
-        );
+      setOrders([]);
+      setLoading(false);
 
-        const userId =
-          currentUser.user_id ||
-          currentUser.id ||
-          null;
+      return;
+    }
 
-        // If there is a recent order waiting to be saved
-        if (savedCart) {
-          try {
-            const parsedOrder = JSON.parse(savedCart);
-
-            // Remove it so it isn't saved multiple times
-            localStorage.removeItem("recent_order");
-
-            const saveResponse = await fetch("/api/orders/save", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                ...parsedOrder,
-                user_id: userId,
-                customerEmail:
-                  parsedOrder.customerEmail || "N/A",
-                shippingAddress:
-                  shippingInfo.address ||
-                  parsedOrder.shippingAddress ||
-                  "N/A",
-                phone: parsedOrder.phone || "N/A",
-              }),
-            });
-
-            const saveData = await saveResponse.json();
-
-            if (!saveData.success) {
-              console.error(
-                "Failed to save order:",
-                saveData.error
-              );
-            }
-          } catch (err) {
-            console.error(
-              "Failed to process recent order:",
-              err
-            );
-          }
-        }
-
-        // Load the latest orders from MySQL
-        if (userId) {
-          await loadOrders(userId);
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error(
-          "Failed to initialize orders:",
-          err
-        );
-        setLoading(false);
-      }
-    };
-
-    initializeOrders();
+    loadOrders(userId);
   }, []);
 
-  // Track Order
-  // This gets the newest status from MySQL
-  const trackOrder = async (orderId: string) => {
+  // --------------------------------------------------
+  // Track / refresh order
+  // --------------------------------------------------
+  const trackOrder = async (
+    orderId: string
+  ) => {
     try {
       setTrackingOrder(orderId);
 
-      const currentUser = JSON.parse(
-        localStorage.getItem("user") || "{}"
-      );
-
       const userId =
-        currentUser.user_id ||
-        currentUser.id ||
-        null;
+        getUserId();
 
       if (!userId) {
-        console.error("No user ID found.");
+        console.error(
+          "Cannot track order because no user ID was found."
+        );
+
         return;
       }
 
-      // Fetch latest orders from database
-      const res = await fetch(
-        `/api/orders/get?user_id=${userId}&t=${Date.now()}`,
-        {
-          cache: "no-store",
-        }
-      );
-
-      const data = await res.json();
-
-      if (data.success && data.orders) {
-        const formattedOrders = formatOrders(data.orders);
-
-        setOrders(formattedOrders);
-
-        // Find the specific order we just tracked
-        const updatedOrder = formattedOrders.find(
-          (order: any) =>
-            String(order.id) === String(orderId)
-        );
-
-        if (updatedOrder) {
-          console.log(
-            `Order ${orderId} status:`,
-            updatedOrder.status
-          );
-        }
-      } else {
-        console.error(
-          "Failed to refresh order:",
-          data.error
-        );
-      }
-    } catch (err) {
+      await loadOrders(userId);
+    } catch (error) {
       console.error(
         "Failed to track order:",
-        err
+        error
       );
     } finally {
       setTrackingOrder(null);
     }
   };
 
-  // Cancel order from the page
-  const handleCancelOrder = async (orderId: string) => {
-    try {
-      const numericId = orderId.replace(/[^0-9]/g, "");
-      const res = await fetch('/api/orders/delete', {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json'},
-        body: JSON.stringify({ id: numericId })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setOrders((prevOrders) => 
-        prevOrders.filter((order) => order.id !== orderId)
-      )
-    }
-  } catch (err) {
-    console.error("Failed to cancel order:", err);
-  }
-};
-   
+  // --------------------------------------------------
+  // Cancel order
+  // --------------------------------------------------
+  const handleCancelOrder =
+    async (orderId: string) => {
+      try {
+        const firestoreId =
+          orderId.startsWith(
+            "ORD-"
+          )
+            ? orderId.substring(4)
+            : orderId;
+
+        const response =
+          await fetch(
+            "/api/orders/delete",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              body: JSON.stringify({
+                id: firestoreId,
+              }),
+            }
+          );
+
+        const text =
+          await response.text();
+
+        let data: any = {};
+
+        try {
+          data = text
+            ? JSON.parse(text)
+            : {};
+        } catch {
+          console.error(
+            "Invalid delete response:",
+            text
+          );
+
+          return;
+        }
+
+        if (data.success) {
+          setOrders(
+            (previousOrders) =>
+              previousOrders.filter(
+                (order) =>
+                  order.id !==
+                  orderId
+              )
+          );
+        } else {
+          console.error(
+            "Failed to cancel order:",
+            data?.error
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Cancel order error:",
+          error
+        );
+      }
+    };
+
+  // --------------------------------------------------
+  // Render
+  // --------------------------------------------------
   return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>
+    <div
+      className={styles.container}
+    >
+      <h1
+        className={styles.title}
+      >
         Your Orders
       </h1>
 
       {loading ? (
-        <div className={styles.emptyState}>
-          <p>Loading orders...</p>
+        <div
+          className={
+            styles.emptyState
+          }
+        >
+          <p>
+            Loading orders...
+          </p>
         </div>
       ) : orders.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>No active orders found.</p>
+        <div
+          className={
+            styles.emptyState
+          }
+        >
+          <p>
+            No active orders found.
+          </p>
 
           <Link
             href="/glowsticks"
-            className={styles.shopGlowBtn}
+            className={
+              styles.shopGlowBtn
+            }
           >
             Shop Glow Sticks
           </Link>
         </div>
       ) : (
-        <div className={styles.ordersList}>
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className={styles.orderCard}
-            >
-              <div className={styles.orderLeft}>
-                {order.image && (
-                  <Image
-                    src={order.image}
-                    width={80}
-                    height={80}
-                    className={styles.productImg}
-                    alt={order.name}
-                  />
-                )}
-
-                <div className={styles.orderDetails}>
-                  <h3>{order.name}</h3>
-
-                  <span
-                    className={
-                      styles.statusBadge
-                    }
-                  >
-                    Status: {order.status}
-                  </span>
-                </div>
-              </div>
-
-              <div className={styles.orderRight}>
+        <div
+          className={
+            styles.ordersList
+          }
+        >
+          {orders.map(
+            (order) => (
+              <div
+                key={order.id}
+                className={
+                  styles.orderCard
+                }
+              >
                 <div
-                  className={styles.priceInfo}
+                  className={
+                    styles.orderLeft
+                  }
                 >
-                  Price:{" "}
-                  <span>{order.price}</span>
-                </div>
-
-                <div
-                  className={styles.priceInfo}
-                >
-                  Shipping:{" "}
-                  <span>{order.shipping}</span>
-                </div>
-
-                <div
-                  className={styles.priceInfo}
-                >
-                  Tax:{" "}
-                  <span>{order.tax}</span>
-                </div>
-
-                <div
-                  className={styles.priceInfo}
-                >
-                  Total:{" "}
-                  <span>{order.total}</span>
-                </div>
-
-                <div
-                  className={styles.buttonGroup}
-                >
-                  {/* TRACK ORDER */}
-                  <button
-                    onClick={() =>
-                      trackOrder(order.id)
-                    }
-                    className={styles.trackBtn}
-                    disabled={
-                      trackingOrder === order.id
-                    }
-                  >
-                    {trackingOrder === order.id
-                      ? "Checking..."
-                      : "Track Order"}
-                  </button>
-
-                  {/* CANCEL ORDER */}
-                  {order.status ===
-                    "Paid / Processing" && (
-                    <button
-                      className={
-                        styles.cancelBtn
+                  {order.image && (
+                    <Image
+                      src={
+                        order.image
                       }
+                      width={80}
+                      height={80}
+                      className={
+                        styles.productImg
+                      }
+                      alt={
+                        order.name
+                      }
+                    />
+                  )}
+
+                  <div
+                    className={
+                      styles.orderDetails
+                    }
+                  >
+                    <h3>
+                      {order.name}
+                    </h3>
+
+                    <span
+                      className={
+                        styles.statusBadge
+                      }
+                    >
+                      Status:{" "}
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  className={
+                    styles.orderRight
+                  }
+                >
+                  <div
+                    className={
+                      styles.priceInfo
+                    }
+                  >
+                    Price:{" "}
+                    <span>
+                      {
+                        order.price
+                      }
+                    </span>
+                  </div>
+
+                  <div
+                    className={
+                      styles.priceInfo
+                    }
+                  >
+                    Shipping:{" "}
+                    <span>
+                      {
+                        order.shipping
+                      }
+                    </span>
+                  </div>
+
+                  <div
+                    className={
+                      styles.priceInfo
+                    }
+                  >
+                    Tax:{" "}
+                    <span>
+                      {order.tax}
+                    </span>
+                  </div>
+
+                  <div
+                    className={
+                      styles.priceInfo
+                    }
+                  >
+                    Total:{" "}
+                    <span>
+                      {
+                        order.total
+                      }
+                    </span>
+                  </div>
+
+                  <div
+                    className={
+                      styles.buttonGroup
+                    }
+                  >
+                    <button
                       onClick={() =>
-                        handleCancelOrder(
+                        trackOrder(
                           order.id
                         )
                       }
+                      className={
+                        styles.trackBtn
+                      }
+                      disabled={
+                        trackingOrder ===
+                        order.id
+                      }
                     >
-                      Cancel Order
+                      {trackingOrder ===
+                      order.id
+                        ? "Checking..."
+                        : "Track Order"}
                     </button>
-                  )}
+
+                    {order.status ===
+                      "Paid / Processing" && (
+                      <button
+                        className={
+                          styles.cancelBtn
+                        }
+                        onClick={() =>
+                          handleCancelOrder(
+                            order.id
+                          )
+                        }
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       )}
     </div>

@@ -18,80 +18,252 @@ export default function CheckoutPage() {
     zipCode: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [processing, setProcessing] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const subtotal = cart.reduce((total: number, item: any) => {
-    const price = item.price || 0;
-    const qty = item.quantity || 1;
-    return total + price * qty;
-  }, 0);
+  // ---------------------------------------------------------
+  // Calculate order totals
+  // ---------------------------------------------------------
+
+  const subtotal = cart.reduce(
+    (total: number, item: any) => {
+      const price = Number(item.price) || 0;
+      const qty = Number(item.quantity) || 1;
+
+      return total + price * qty;
+    },
+    0
+  );
 
   const shipping = subtotal > 0 ? 5.0 : 0.0;
+
   const tax = subtotal * 0.07;
+
   const total = subtotal + shipping + tax;
 
-  const handleCheckout = async (e: React.FormEvent) => {
+  // ---------------------------------------------------------
+  // Handle checkout
+  // ---------------------------------------------------------
+
+  const handleCheckout = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch("/api/webhook", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ items: cart, shipping: shipping, tax: tax }),
-      });
+    if (processing) {
+      return;
+    }
 
-      const data = await response.json();
+    try {
+      setProcessing(true);
+
+      // -----------------------------------------------------
+      // Get the current user
+      // -----------------------------------------------------
+
+      let currentUser: any = {};
+
+      try {
+        const rawUser = localStorage.getItem("user");
+
+        if (
+          rawUser &&
+          rawUser !== "undefined" &&
+          rawUser !== "null"
+        ) {
+          currentUser = JSON.parse(rawUser);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to read user from localStorage:",
+          error
+        );
+      }
+
+      // -----------------------------------------------------
+      // Get user ID
+      // -----------------------------------------------------
+
+      const userId =
+        currentUser?.user_id ||
+        currentUser?.id ||
+        currentUser?.uid ||
+        null;
+        
+
+      // -----------------------------------------------------
+      // Build shipping address
+      // -----------------------------------------------------
+
+      const shippingAddress = [
+        formData.address,
+        formData.city,
+        formData.state,
+        formData.zipCode,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      // -----------------------------------------------------
+      // Build the order
+      // -----------------------------------------------------
+
+      const orderData = {
+        user_id: String(userId),
+
+        items: cart,
+
+        price: Number(subtotal.toFixed(2)),
+
+        shipping: Number(shipping.toFixed(2)),
+
+        tax: Number(tax.toFixed(2)),
+
+        total: Number(total.toFixed(2)),
+
+        phone: formData.phone,
+
+        shippingAddress,
+
+        customerEmail: formData.email,
+
+        status: "Paid / Processing",
+
+        createdAt: new Date().toISOString(),
+      };
+
+      console.log(
+        "Order being prepared:",
+        orderData
+      );
+
+      // -----------------------------------------------------
+      // Save order information locally.
+      //
+      // Your current Orders page uses this value to save the
+      // order to Firestore after returning to /orders.
+      // -----------------------------------------------------
+
+      localStorage.setItem(
+        "recent_order",
+        JSON.stringify(orderData)
+      );
+
+      // -----------------------------------------------------
+      // Save shipping information separately because your
+      // current Orders page also looks for shipped_address.
+      // -----------------------------------------------------
+
+      localStorage.setItem(
+        "shipped_address",
+        JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+        })
+      );
+
+      // -----------------------------------------------------
+      // Create Stripe Checkout Session
+      // -----------------------------------------------------
+
+      const response = await fetch(
+        "/api/webhook",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            items: cart,
+            shipping,
+            tax,
+          }),
+        }
+      );
+
+      const text = await response.text();
+
+      let data: any = {};
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (error) {
+        console.error(
+          "Invalid response from checkout API:",
+          text
+        );
+
+        throw new Error(
+          "Invalid response from checkout server."
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error ||
+            data?.message ||
+            "Something went wrong creating the checkout session."
+        );
+      }
+
+      // -----------------------------------------------------
+      // Redirect to Stripe
+      // -----------------------------------------------------
 
       if (data.url) {
-        const subtotal = cart.reduce(
-          (acc: number, item: any) => acc + item.price * (item.quantity || 1),
-          0,
-        );
-        const finalTotal = subtotal + (shipping || 0) + (tax || 0);
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-        const activeUserId = currentUser.user_id || null;
-
-        localStorage.setItem(
-          "recent_order",
-          JSON.stringify({
-            userId: activeUserId,
-            items: cart.map((item: any) => ({
-              name: item.name,
-              quantity: item.quantity || 1,
-              image: item.image,
-              })),
-              price:subtotal,
-              shipping: shipping,
-              tax:tax,
-              total: finalTotal,
-              phone: formData.phone,
-              customerEmail: formData.email,
-              shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}` 
-          }),
-        );
-
         window.location.href = data.url;
-      } else {
-        console.error("Failed to create checkout session");
+        return;
       }
-    } catch (error) {
-      console.error("Error during checkout:", error);
+
+      throw new Error(
+        "Stripe checkout URL was not returned."
+      );
+    } catch (error: any) {
+      console.error(
+        "Error during checkout:",
+        error
+      );
+
+      alert(
+        error?.message ||
+          "Something went wrong during checkout. Please try again."
+      );
+
+      setProcessing(false);
     }
   };
+
+  // ---------------------------------------------------------
+  // Empty cart
+  // ---------------------------------------------------------
 
   if (cart.length === 0) {
     return (
       <div className={styles.checkoutContainer}>
         <div className={styles.emptyState}>
           <h2>Your cart is empty!</h2>
+
           <p style={{ margin: "15px 0" }}>
             Add some glowsticks before heading to checkout.
           </p>
+
           <Link
             href="/glowsticks"
             className={styles.placeOrderBtn}
@@ -110,16 +282,34 @@ export default function CheckoutPage() {
     );
   }
 
+  // ---------------------------------------------------------
+  // Checkout page
+  // ---------------------------------------------------------
+
   return (
     <div className={styles.checkoutContainer}>
-      <h1 className={styles.checkoutTitle}>Checkout</h1>
+      <h1 className={styles.checkoutTitle}>
+        Checkout
+      </h1>
 
-      <form onSubmit={handleCheckout} className={styles.checkoutGrid}>
+      <form
+        onSubmit={handleCheckout}
+        className={styles.checkoutGrid}
+      >
+        {/* -------------------------------------------------
+            Delivery Information
+        -------------------------------------------------- */}
+
         <div className={styles.checkoutForm}>
-          <h2 className={styles.sectionTitle}>Delivery Information</h2>
+          <h2 className={styles.sectionTitle}>
+            Delivery Information
+          </h2>
 
           <div className={styles.formGroup}>
-            <label htmlFor="fullName">Full Name</label>
+            <label htmlFor="fullName">
+              Full Name
+            </label>
+
             <input
               type="text"
               id="fullName"
@@ -133,7 +323,10 @@ export default function CheckoutPage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">
+              Email Address
+            </label>
+
             <input
               type="email"
               id="email"
@@ -147,7 +340,10 @@ export default function CheckoutPage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="phone">Phone Number</label>
+            <label htmlFor="phone">
+              Phone Number
+            </label>
+
             <input
               type="tel"
               id="phone"
@@ -161,7 +357,10 @@ export default function CheckoutPage() {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="address">Street Address</label>
+            <label htmlFor="address">
+              Street Address
+            </label>
+
             <input
               type="text"
               id="address"
@@ -177,12 +376,16 @@ export default function CheckoutPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
+              gridTemplateColumns:
+                "1fr 1fr 1fr",
               gap: "10px",
             }}
           >
             <div className={styles.formGroup}>
-              <label htmlFor="city">City</label>
+              <label htmlFor="city">
+                City
+              </label>
+
               <input
                 type="text"
                 id="city"
@@ -194,8 +397,12 @@ export default function CheckoutPage() {
                 placeholder="Gainesville"
               />
             </div>
+
             <div className={styles.formGroup}>
-              <label htmlFor="state">State</label>
+              <label htmlFor="state">
+                State
+              </label>
+
               <input
                 type="text"
                 id="state"
@@ -207,8 +414,12 @@ export default function CheckoutPage() {
                 placeholder="FL"
               />
             </div>
+
             <div className={styles.formGroup}>
-              <label htmlFor="zipCode">Zip Code</label>
+              <label htmlFor="zipCode">
+                Zip Code
+              </label>
+
               <input
                 type="text"
                 id="zipCode"
@@ -223,61 +434,196 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* Right Column: Order Summary with Images, Prices, Quantities & Totals */}
+        {/* -------------------------------------------------
+            Order Summary
+        -------------------------------------------------- */}
+
         <div className={styles.summaryColumn}>
-          <h2 className={styles.sectionTitle}>Order Summary</h2>
+          <h2 className={styles.sectionTitle}>
+            Order Summary
+          </h2>
+
           <div className={styles.summaryList}>
-            {cart.map((item: any, index: number) => {
-              const itemQuantity = item.quantity || 1;
-              const itemPrice = item.price || 0;
-              return (
-                <div key={item.id || index} className={styles.summaryItem}>
-                  <div className={styles.itemImageWrapper}>
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      width={60}
-                      height={60}
-                      className={styles.itemImage}
-                    />
+            {cart.map(
+              (
+                item: any,
+                index: number
+              ) => {
+                const itemQuantity =
+                  Number(item.quantity) || 1;
+
+                const itemPrice =
+                  Number(item.price) || 0;
+
+                return (
+                  <div
+                    key={
+                      item.id || index
+                    }
+                    className={
+                      styles.summaryItem
+                    }
+                  >
+                    <div
+                      className={
+                        styles.itemImageWrapper
+                      }
+                    >
+                      <Image
+                        src={item.image}
+                        alt={
+                          item.name ||
+                          "Glow Stick"
+                        }
+                        width={60}
+                        height={60}
+                        className={
+                          styles.itemImage
+                        }
+                      />
+                    </div>
+
+                    <div
+                      className={
+                        styles.itemDetails
+                      }
+                    >
+                      <h3
+                        className={
+                          styles.itemName
+                        }
+                      >
+                        {item.name}
+                      </h3>
+
+                      <span
+                        className={
+                          styles.itemMeta
+                        }
+                      >
+                        Qty:{" "}
+                        {itemQuantity}
+                      </span>
+
+                      <span
+                        className={
+                          styles.itemMeta
+                        }
+                      >
+                        $
+                        {(
+                          itemPrice *
+                          itemQuantity
+                        ).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.itemDetails}>
-                    <h3 className={styles.itemName}>{item.name}</h3>
-                    <span className={styles.itemMeta}>Qty: {itemQuantity}</span>
-                    <span className={styles.itemMeta}>
-                      ${(itemPrice * itemQuantity).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
 
-          <div className={styles.summaryBreakdown}>
-            <div className={styles.summaryRow}>
-              <span>Subtotal:</span>
-              <span>${subtotal.toFixed(2)}</span>
+          {/* -------------------------------------------------
+              Price Breakdown
+          -------------------------------------------------- */}
+
+          <div
+            className={
+              styles.summaryBreakdown
+            }
+          >
+            <div
+              className={
+                styles.summaryRow
+              }
+            >
+              <span>
+                Subtotal:
+              </span>
+
+              <span>
+                $
+                {subtotal.toFixed(
+                  2
+                )}
+              </span>
             </div>
-            <div className={styles.summaryRow}>
-              <span>Shipping:</span>
-              <span>${shipping.toFixed(2)}</span>
+
+            <div
+              className={
+                styles.summaryRow
+              }
+            >
+              <span>
+                Shipping:
+              </span>
+
+              <span>
+                $
+                {shipping.toFixed(
+                  2
+                )}
+              </span>
             </div>
-            <div className={styles.summaryRow}>
-              <span>Estimated Tax (7%):</span>
-              <span>${tax.toFixed(2)}</span>
+
+            <div
+              className={
+                styles.summaryRow
+              }
+            >
+              <span>
+                Estimated Tax
+                (7%):
+              </span>
+
+              <span>
+                $
+                {tax.toFixed(
+                  2
+                )}
+              </span>
             </div>
           </div>
 
-          <div className={styles.totalSection}>
-            <span>Total:</span>
-            <span>${total.toFixed(2)}</span>
+          {/* -------------------------------------------------
+              Total
+          -------------------------------------------------- */}
+
+          <div
+            className={
+              styles.totalSection
+            }
+          >
+            <span>
+              Total:
+            </span>
+
+            <span>
+              $
+              {total.toFixed(
+                2
+              )}
+            </span>
           </div>
 
-          <button type="submit" className={styles.placeOrderBtn}>
-            Place Order
+          {/* -------------------------------------------------
+              Place Order
+          -------------------------------------------------- */}
+
+          <button
+            type="submit"
+            className={
+              styles.placeOrderBtn
+            }
+            disabled={processing}
+          >
+            {processing
+              ? "Processing..."
+              : "Place Order"}
           </button>
         </div>
       </form>
     </div>
   );
 }
+
