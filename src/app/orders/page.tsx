@@ -1,4 +1,5 @@
 "use client";
+
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import styles from "./page.orders.module.css";
@@ -46,7 +47,10 @@ export default function OrdersPage() {
 
     // Next.js imported image object
     if (typeof image === "object" && image !== null) {
-      if (typeof image.src === "string" && image.src.trim() !== "") {
+      if (
+        typeof image.src === "string" &&
+        image.src.trim() !== ""
+      ) {
         return image.src.trim();
       }
 
@@ -57,7 +61,10 @@ export default function OrdersPage() {
         return image.default.src.trim();
       }
 
-      if (typeof image.url === "string" && image.url.trim() !== "") {
+      if (
+        typeof image.url === "string" &&
+        image.url.trim() !== ""
+      ) {
         return image.url.trim();
       }
 
@@ -79,7 +86,10 @@ export default function OrdersPage() {
   const formatOrders = (databaseOrders: any[]): Order[] => {
     console.log("======================================");
     console.log("🔎 ORDERS DEBUG: formatOrders received");
-    console.log("Number of database orders:", databaseOrders.length);
+    console.log(
+      "Number of database orders:",
+      databaseOrders.length
+    );
     console.log("======================================");
 
     return databaseOrders.map((order: any) => {
@@ -103,7 +113,10 @@ export default function OrdersPage() {
           }
         }
       } catch (error) {
-        console.error("❌ Orders - failed to parse items:", error);
+        console.error(
+          "❌ Orders - failed to parse items:",
+          error
+        );
       }
 
       console.log("📦 Raw order items:", rawItems);
@@ -132,7 +145,7 @@ export default function OrdersPage() {
         if (!image) {
           console.warn(
             "⚠️ NO PRODUCT IMAGE FOUND FOR:",
-            item?.name || "Unknown Product",
+            item?.name || "Unknown Product"
           );
         }
 
@@ -180,7 +193,8 @@ export default function OrdersPage() {
       });
 
       return {
-        id: `ORD-${order.id}`,
+        // No ORD- prefix
+        id: String(order.id),
 
         items,
 
@@ -213,10 +227,15 @@ export default function OrdersPage() {
       // FIREBASE USER
       // -------------------------------------------------------
 
-      console.log("🔎 Firebase user object:", firebaseUser);
+      console.log(
+        "🔎 Firebase user object:",
+        firebaseUser
+      );
 
       if (!firebaseUser) {
-        console.error("❌ firebaseUser is NULL/UNDEFINED");
+        console.error(
+          "❌ firebaseUser is NULL/UNDEFINED"
+        );
 
         setOrders([]);
 
@@ -224,8 +243,14 @@ export default function OrdersPage() {
       }
 
       console.log("✅ Firebase user exists");
-      console.log("🔎 Firebase UID:", firebaseUser.uid);
-      console.log("🔎 Firebase email:", firebaseUser.email);
+      console.log(
+        "🔎 Firebase UID:",
+        firebaseUser.uid
+      );
+      console.log(
+        "🔎 Firebase email:",
+        firebaseUser.email
+      );
 
       // -------------------------------------------------------
       // UID
@@ -234,41 +259,63 @@ export default function OrdersPage() {
       const userId = firebaseUser.uid;
 
       if (!userId) {
-        console.error("❌ Firebase user has NO UID");
+        console.error(
+          "❌ Firebase user has NO UID"
+        );
 
         setOrders([]);
 
         return;
       }
 
-      console.log("✅ UID exists:", userId);
+      console.log(
+        "✅ UID exists:",
+        userId
+      );
 
       // -------------------------------------------------------
       // FIREBASE ID TOKEN
       // -------------------------------------------------------
 
-      console.log("🔎 Requesting Firebase ID token...");
+      console.log(
+        "🔎 Requesting Firebase ID token..."
+      );
 
-      const token = await firebaseUser.getIdToken(true);
+      const token =
+        await firebaseUser.getIdToken(true);
 
       if (!token) {
-        console.error("❌ Firebase ID token is EMPTY");
+        console.error(
+          "❌ Firebase ID token is EMPTY"
+        );
 
         setOrders([]);
 
         return;
       }
 
-      console.log("✅ Firebase ID token received");
+      console.log(
+        "✅ Firebase ID token received"
+      );
 
       // -------------------------------------------------------
       // API URL
       // -------------------------------------------------------
 
-      const apiUrl = `/api/orders/get?user_id=${encodeURIComponent(userId)}`;
+      const apiUrl =
+        `/api/orders/get?user_id=${encodeURIComponent(
+          userId
+        )}`;
 
-      console.log("🔎 ORDERS API URL:", apiUrl);
-      console.log("🔎 user_id being sent:", userId);
+      console.log(
+        "🔎 ORDERS API URL:",
+        apiUrl
+      );
+
+      console.log(
+        "🔎 user_id being sent:",
+        userId
+      );
 
       // -------------------------------------------------------
       // CALL API
@@ -284,15 +331,22 @@ export default function OrdersPage() {
         cache: "no-store",
       });
 
-      console.log("🔎 Orders API HTTP status:", response.status);
+      console.log(
+        "🔎 Orders API HTTP status:",
+        response.status
+      );
 
       // -------------------------------------------------------
       // RAW RESPONSE
       // -------------------------------------------------------
 
-      const responseText = await response.text();
+      const responseText =
+        await response.text();
 
-      console.log("🔎 RAW ORDERS API RESPONSE:", responseText);
+      console.log(
+        "🔎 RAW ORDERS API RESPONSE:",
+        responseText
+      );
 
       // -------------------------------------------------------
       // PARSE JSON
@@ -301,23 +355,34 @@ export default function OrdersPage() {
       let data: any = {};
 
       try {
-        data = responseText ? JSON.parse(responseText) : {};
+        data = responseText
+          ? JSON.parse(responseText)
+          : {};
       } catch (error) {
-        console.error("❌ Orders API returned INVALID JSON", error);
+        console.error(
+          "❌ Orders API returned INVALID JSON",
+          error
+        );
 
         setOrders([]);
 
         return;
       }
 
-      console.log("✅ Parsed Orders API response:", data);
+      console.log(
+        "✅ Parsed Orders API response:",
+        data
+      );
 
       // -------------------------------------------------------
       // HTTP ERROR
       // -------------------------------------------------------
 
       if (!response.ok) {
-        console.error("❌ ORDERS API ERROR:", data?.error);
+        console.error(
+          "❌ ORDERS API ERROR:",
+          data?.error
+        );
 
         setOrders([]);
 
@@ -329,7 +394,10 @@ export default function OrdersPage() {
       // -------------------------------------------------------
 
       if (!data.success) {
-        console.error("❌ Orders API success=false:", data?.error);
+        console.error(
+          "❌ Orders API success=false:",
+          data?.error
+        );
 
         setOrders([]);
 
@@ -340,72 +408,132 @@ export default function OrdersPage() {
       // DATABASE ORDERS
       // -------------------------------------------------------
 
-      const databaseOrders = Array.isArray(data.orders) ? data.orders : [];
+      const databaseOrders =
+        Array.isArray(data.orders)
+          ? data.orders
+          : [];
 
       console.log("======================================");
-      console.log("📦 FIRESTORE ORDERS RECEIVED");
-      console.log("Number of orders:", databaseOrders.length);
-      console.log("Full orders:", databaseOrders);
+      console.log(
+        "📦 FIRESTORE ORDERS RECEIVED"
+      );
+      console.log(
+        "Number of orders:",
+        databaseOrders.length
+      );
+      console.log(
+        "Full orders:",
+        databaseOrders
+      );
       console.log("======================================");
 
       // -------------------------------------------------------
       // INSPECT ORDERS
       // -------------------------------------------------------
 
-      databaseOrders.forEach((order: any, index: number) => {
-        console.log(`📦 ORDER ${index + 1}`);
-        console.log("Document ID:", order.id);
-        console.log("Stored user_id:", order.user_id);
-        console.log("Payment status:", order.paymentStatus);
-        console.log("Status:", order.status);
-        console.log("Items:", order.items);
-      });
+      databaseOrders.forEach(
+        (order: any, index: number) => {
+          console.log(
+            `📦 ORDER ${index + 1}`
+          );
+          console.log(
+            "Document ID:",
+            order.id
+          );
+          console.log(
+            "Stored user_id:",
+            order.user_id
+          );
+          console.log(
+            "Payment status:",
+            order.paymentStatus
+          );
+          console.log(
+            "Status:",
+            order.status
+          );
+          console.log(
+            "Items:",
+            order.items
+          );
+        }
+      );
 
       // -------------------------------------------------------
       // FILTER PAID ORDERS
       // -------------------------------------------------------
 
-      const paidOrders = databaseOrders.filter((order: any) => {
-        const paymentStatus = String(order.paymentStatus || "")
-          .trim()
-          .toLowerCase();
+      const paidOrders =
+        databaseOrders.filter(
+          (order: any) => {
+            const paymentStatus =
+              String(
+                order.paymentStatus || ""
+              )
+                .trim()
+                .toLowerCase();
 
-        return paymentStatus === "paid";
-      });
+            return paymentStatus === "paid";
+          }
+        );
 
-      console.log("💳 PAID ORDERS:", paidOrders.length);
+      console.log(
+        "💳 PAID ORDERS:",
+        paidOrders.length
+      );
 
       // -------------------------------------------------------
       // SORT NEWEST FIRST
       // -------------------------------------------------------
 
-      paidOrders.sort((a: any, b: any) => {
-        const dateA = new Date(a.createdAt || 0).getTime();
+      paidOrders.sort(
+        (a: any, b: any) => {
+          const dateA = new Date(
+            a.createdAt || 0
+          ).getTime();
 
-        const dateB = new Date(b.createdAt || 0).getTime();
+          const dateB = new Date(
+            b.createdAt || 0
+          ).getTime();
 
-        return dateB - dateA;
-      });
+          return dateB - dateA;
+        }
+      );
 
       // -------------------------------------------------------
       // FORMAT ORDERS
       // -------------------------------------------------------
 
-      const formattedOrders = formatOrders(paidOrders);
+      const formattedOrders =
+        formatOrders(paidOrders);
 
       console.log("======================================");
-      console.log("✅ FORMATTED ORDERS:", formattedOrders);
+      console.log(
+        "✅ FORMATTED ORDERS:",
+        formattedOrders
+      );
       console.log("======================================");
 
       setOrders(formattedOrders);
 
-      console.log("✅ Orders state updated");
+      console.log(
+        "✅ Orders state updated"
+      );
     } catch (error: any) {
-      console.error("======================================");
-      console.error("❌ ORDERS LOAD CRASHED");
+      console.error(
+        "======================================"
+      );
+
+      console.error(
+        "❌ ORDERS LOAD CRASHED"
+      );
+
       console.error(error);
       console.error(error?.message);
-      console.error("======================================");
+
+      console.error(
+        "======================================"
+      );
 
       setOrders([]);
     }
@@ -416,32 +544,51 @@ export default function OrdersPage() {
   // =========================================================
 
   useEffect(() => {
-    console.log("🔎 Orders - waiting for Firebase authentication...");
+    console.log(
+      "🔎 Orders - waiting for Firebase authentication..."
+    );
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      try {
-        if (!firebaseUser) {
-          console.warn("⚠️ No Firebase user is signed in.");
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        async (firebaseUser) => {
+          try {
+            if (!firebaseUser) {
+              console.warn(
+                "⚠️ No Firebase user is signed in."
+              );
 
-          setOrders([]);
+              setOrders([]);
 
-          setLoading(false);
+              setLoading(false);
 
-          return;
+              return;
+            }
+
+            console.log(
+              "✅ FIREBASE USER AUTHENTICATED"
+            );
+
+            console.log(
+              "Firebase UID:",
+              firebaseUser.uid
+            );
+
+            await loadOrders(
+              firebaseUser
+            );
+          } catch (error) {
+            console.error(
+              "❌ Authentication error:",
+              error
+            );
+
+            setOrders([]);
+          } finally {
+            setLoading(false);
+          }
         }
-
-        console.log("✅ FIREBASE USER AUTHENTICATED");
-        console.log("Firebase UID:", firebaseUser.uid);
-
-        await loadOrders(firebaseUser);
-      } catch (error) {
-        console.error("❌ Authentication error:", error);
-
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    });
+      );
 
     return () => {
       unsubscribe();
@@ -452,21 +599,31 @@ export default function OrdersPage() {
   // TRACK ORDER
   // =========================================================
 
-  const trackOrder = async (orderId: string) => {
+  const trackOrder = async (
+    orderId: string
+  ) => {
     try {
       setTrackingOrder(orderId);
 
-      const firebaseUser = auth.currentUser;
+      const firebaseUser =
+        auth.currentUser;
 
       if (!firebaseUser) {
-        console.error("❌ Cannot track order: no Firebase user.");
+        console.error(
+          "❌ Cannot track order: no Firebase user."
+        );
 
         return;
       }
 
-      await loadOrders(firebaseUser);
+      await loadOrders(
+        firebaseUser
+      );
     } catch (error) {
-      console.error("❌ Failed to refresh orders:", error);
+      console.error(
+        "❌ Failed to refresh orders:",
+        error
+      );
     } finally {
       setTrackingOrder(null);
     }
@@ -476,57 +633,84 @@ export default function OrdersPage() {
   // CANCEL ORDER
   // =========================================================
 
-  const handleCancelOrder = async (orderId: string) => {
+  const handleCancelOrder = async (
+    orderId: string
+  ) => {
     try {
-      const firestoreId = orderId.startsWith("ORD-")
-        ? orderId.substring(4)
-        : orderId;
+      // orderId is already the actual
+      // Firestore document ID.
+      const firestoreId = orderId;
 
-      const firebaseUser = auth.currentUser;
+      const firebaseUser =
+        auth.currentUser;
 
       if (!firebaseUser) {
-        console.error("❌ Cannot cancel order: no Firebase user.");
+        console.error(
+          "❌ Cannot cancel order: no Firebase user."
+        );
 
         return;
       }
 
-      const token = await firebaseUser.getIdToken(true);
+      const token =
+        await firebaseUser.getIdToken(true);
 
-      const response = await fetch("/api/orders/delete", {
-        method: "POST",
+      const response = await fetch(
+        "/api/orders/delete",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
+          headers: {
+            "Content-Type":
+              "application/json",
 
-          Authorization: `Bearer ${token}`,
-        },
+            Authorization:
+              `Bearer ${token}`,
+          },
 
-        body: JSON.stringify({
-          id: firestoreId,
-        }),
-      });
+          body: JSON.stringify({
+            id: firestoreId,
+          }),
+        }
+      );
 
-      const text = await response.text();
+      const text =
+        await response.text();
 
       let data: any = {};
 
       try {
-        data = text ? JSON.parse(text) : {};
+        data = text
+          ? JSON.parse(text)
+          : {};
       } catch {
-        console.error("❌ Invalid delete response:", text);
+        console.error(
+          "❌ Invalid delete response:",
+          text
+        );
 
         return;
       }
 
       if (data.success) {
-        setOrders((previousOrders) =>
-          previousOrders.filter((order) => order.id !== orderId),
+        setOrders(
+          (previousOrders) =>
+            previousOrders.filter(
+              (order) =>
+                order.id !== orderId
+            )
         );
       } else {
-        console.error("❌ Failed to cancel order:", data?.error);
+        console.error(
+          "❌ Failed to cancel order:",
+          data?.error
+        );
       }
     } catch (error) {
-      console.error("❌ Cancel order error:", error);
+      console.error(
+        "❌ Cancel order error:",
+        error
+      );
     }
   };
 
@@ -536,7 +720,9 @@ export default function OrdersPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Your Orders</h1>
+      <h1 className={styles.title}>
+        Your Orders
+      </h1>
 
       {loading ? (
         <div className={styles.emptyState}>
@@ -544,25 +730,51 @@ export default function OrdersPage() {
         </div>
       ) : orders.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No completed orders found.</p>
+          <p>
+            No completed orders found.
+          </p>
 
-          <Link href="/glowsticks" className={styles.shopGlowBtn}>
+          <Link
+            href="/glowsticks"
+            className={
+              styles.shopGlowBtn
+            }
+          >
             Shop Glow Sticks
           </Link>
         </div>
       ) : (
         <div className={styles.ordersList}>
           {orders.map((order) => (
-            <div key={order.id} className={styles.orderCard}>
+            <div
+              key={order.id}
+              className={styles.orderCard}
+            >
               {/* ==========================================
                     LEFT SIDE
                 ========================================== */}
 
               <div className={styles.orderLeft}>
-                <div className={styles.orderDetails}>
-                  <h3>{order.id}</h3>
+                <div
+                  className={
+                    styles.orderDetails
+                  }
+                >
+                  {/* ORDER ID */}
+                  <h3
+                    style={{
+                      color:
+                        "rgb(219, 255, 148)",
+                    }}
+                  >
+                    {order.id}
+                  </h3>
 
-                  <span className={styles.statusBadge}>
+                  <span
+                    className={
+                      styles.statusBadge
+                    }
+                  >
                     Status: {order.status}
                   </span>
                 </div>
@@ -579,141 +791,247 @@ export default function OrdersPage() {
                   marginBottom: "20px",
                 }}
               >
-                {order.items.map((item, index) => (
-                  <div
-                    key={`${order.id}-${index}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "16px",
-                      padding: "14px 0",
-                      borderBottom:
-                        index < order.items.length - 1
-                          ? "1px solid #e5e5e5"
-                          : "none",
-                    }}
-                  >
-                    {/* PRODUCT IMAGE */}
-
-                    {item.image ? (
-                      <Image
-                        src={item.image}
-                        width={80}
-                        height={80}
-                        className={styles.productImg}
-                        alt={item.name}
-                        unoptimized
-                        onError={() => {
-                          console.error("❌ PRODUCT IMAGE FAILED TO LOAD:", {
-                            orderId: order.id,
-                            productName: item.name,
-                            image: item.image,
-                          });
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          minWidth: "80px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          border: "1px solid #ddd",
-                          borderRadius: "8px",
-                          fontSize: "12px",
-                          textAlign: "center",
-                        }}
-                      >
-                        No image
-                      </div>
-                    )}
-
-                    {/* PRODUCT INFORMATION */}
-
+                {order.items.map(
+                  (item, index) => (
                     <div
+                      key={`${order.id}-${index}`}
                       style={{
-                        flex: 1,
+                        display: "flex",
+                        alignItems:
+                          "center",
+                        gap: "16px",
+                        padding:
+                          "14px 0",
+                        borderBottom:
+                          index <
+                          order.items.length -
+                            1
+                            ? "1px solid rgb(219, 255, 148)"
+                            : "none",
                       }}
                     >
-                      <h3
-                        style={{
-                          margin: "0 0 6px 0",
-                          color:"yellowgreen",
-                        }}
-                      >
-                        {item.name}
-                      </h3>
+                      {/* PRODUCT IMAGE */}
 
-                      <p
-                        style={{
-                          margin: "0 0 5px 0",
-                          color:"rgb(219, 255, 148)"
-                        }}
-                      >
-                        Quantity: {item.quantity}
-                      </p>
-
-                      <p
-                        style={{
-                          margin: 0,
-                          color:"rgb(219, 255, 148)",
-                        }}
-                      >
-                        Price: ${Number(item.price || 0).toFixed(2)}
-                      </p>
-
-                      {item.description && (
-                        <p
+                      {item.image ? (
+                        <Image
+                          src={item.image}
+                          width={80}
+                          height={80}
+                          className={
+                            styles.productImg
+                          }
+                          alt={item.name}
+                          unoptimized
+                          onError={() => {
+                            console.error(
+                              "❌ PRODUCT IMAGE FAILED TO LOAD:",
+                              {
+                                orderId:
+                                  order.id,
+                                productName:
+                                  item.name,
+                                image:
+                                  item.image,
+                              }
+                            );
+                          }}
+                        />
+                      ) : (
+                        <div
                           style={{
-                            margin: "6px 0 0 0",
-                            fontSize: "14px",
-                            color:'rgb(219, 255, 148)'
+                            width: "80px",
+                            height: "80px",
+                            minWidth:
+                              "80px",
+                            display:
+                              "flex",
+                            alignItems:
+                              "center",
+                            justifyContent:
+                              "center",
+                            border:
+                              "1px solid #ddd",
+                            borderRadius:
+                              "8px",
+                            fontSize:
+                              "12px",
+                            textAlign:
+                              "center",
                           }}
                         >
-                          {item.description}
-                        </p>
+                          No image
+                        </div>
                       )}
+
+                      {/* PRODUCT INFORMATION */}
+
+                      <div
+                        style={{
+                          flex: 1,
+                        }}
+                      >
+                        {/* PRODUCT NAME */}
+                        <h3
+                          style={{
+                            margin:
+                              "0 0 6px 0",
+                            color:
+                              "yellowgreen",
+                          }}
+                        >
+                          {item.name}
+                        </h3>
+
+                        {/* QUANTITY */}
+                        <p
+                          style={{
+                            margin:
+                              "0 0 5px 0",
+                          }}
+                        >
+                          Quantity:{" "}
+                          <span
+                            style={{
+                              color:
+                                "rgb(219, 255, 148)",
+                            }}
+                          >
+                            {item.quantity}
+                          </span>
+                        </p>
+
+                        {/* PRICE */}
+                        <p
+                          style={{
+                            margin: 0,
+                          }}
+                        >
+                          Price:{" "}
+                          <span
+                            style={{
+                              color:
+                                "rgb(219, 255, 148)",
+                            }}
+                          >
+                            $
+                            {Number(
+                              item.price || 0
+                            ).toFixed(2)}
+                          </span>
+                        </p>
+
+                        {/* DESCRIPTION */}
+                        {item.description && (
+                          <p
+                            style={{
+                              margin:
+                                "6px 0 0 0",
+                              fontSize:
+                                "14px",
+                              color:
+                                "rgb(219, 255, 148)",
+                            }}
+                          >
+                            {
+                              item.description
+                            }
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
 
               {/* ==========================================
                     RIGHT SIDE / ORDER TOTALS
                 ========================================== */}
 
-              <div className={styles.orderRight}>
-                <div className={styles.priceInfo}>
-                  Price: <span>{order.price}</span>
+              <div
+                className={
+                  styles.orderRight
+                }
+              >
+                <div
+                  className={
+                    styles.priceInfo
+                  }
+                >
+                  Price:{" "}
+                  <span>
+                    {order.price}
+                  </span>
                 </div>
 
-                <div className={styles.priceInfo}>
-                  Shipping: <span>{order.shipping}</span>
+                <div
+                  className={
+                    styles.priceInfo
+                  }
+                >
+                  Shipping:{" "}
+                  <span>
+                    {order.shipping}
+                  </span>
                 </div>
 
-                <div className={styles.priceInfo}>
-                  Tax: <span>{order.tax}</span>
+                <div
+                  className={
+                    styles.priceInfo
+                  }
+                >
+                  Tax:{" "}
+                  <span>
+                    {order.tax}
+                  </span>
                 </div>
 
-                <div className={styles.priceInfo}>
-                  Total: <span>{order.total}</span>
+                <div
+                  className={
+                    styles.priceInfo
+                  }
+                >
+                  Total:{" "}
+                  <span>
+                    {order.total}
+                  </span>
                 </div>
 
-                <div className={styles.buttonGroup}>
+                <div
+                  className={
+                    styles.buttonGroup
+                  }
+                >
                   <button
-                    onClick={() => trackOrder(order.id)}
-                    className={styles.trackBtn}
-                    disabled={trackingOrder === order.id}
+                    onClick={() =>
+                      trackOrder(
+                        order.id
+                      )
+                    }
+                    className={
+                      styles.trackBtn
+                    }
+                    disabled={
+                      trackingOrder ===
+                      order.id
+                    }
                   >
-                    {trackingOrder === order.id ? "Checking..." : "Track Order"}
+                    {trackingOrder ===
+                    order.id
+                      ? "Checking..."
+                      : "Track Order"}
                   </button>
 
-                  {order.status === "Paid / Processing" && (
+                  {order.status ===
+                    "Paid / Processing" && (
                     <button
-                      className={styles.cancelBtn}
-                      onClick={() => handleCancelOrder(order.id)}
+                      className={
+                        styles.cancelBtn
+                      }
+                      onClick={() =>
+                        handleCancelOrder(
+                          order.id
+                        )
+                      }
                     >
                       Cancel Order
                     </button>
@@ -727,3 +1045,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
