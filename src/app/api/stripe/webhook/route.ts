@@ -7,12 +7,22 @@ const stripe = new Stripe(
 );
 
 export async function POST(req: Request) {
+  console.log("======================================");
+  console.log("STRIPE WEBHOOK STARTED");
+  console.log("======================================");
+
   try {
     // ---------------------------------------------------------
-    // 1. Get RAW Stripe webhook body
+    // 1. Get the RAW request body
     // ---------------------------------------------------------
 
     const body = await req.text();
+
+    console.log(
+      "Webhook body received:",
+      body.length,
+      "characters"
+    );
 
     // ---------------------------------------------------------
     // 2. Get Stripe signature
@@ -21,15 +31,21 @@ export async function POST(req: Request) {
     const signature =
       req.headers.get("stripe-signature");
 
+    console.log(
+      "Stripe signature exists:",
+      !!signature
+    );
+
     if (!signature) {
       console.error(
-        "Webhook error: Missing stripe-signature header."
+        "400 ERROR: Missing stripe-signature header."
       );
 
       return NextResponse.json(
         {
           success: false,
-          error: "Missing Stripe signature.",
+          error:
+            "Missing stripe-signature header.",
         },
         { status: 400 }
       );
@@ -42,9 +58,14 @@ export async function POST(req: Request) {
     const webhookSecret =
       process.env.STRIPE_WEBHOOK_KEY;
 
+    console.log(
+      "Webhook secret exists:",
+      !!webhookSecret
+    );
+
     if (!webhookSecret) {
       console.error(
-        "Webhook error: STRIPE_WEBHOOK_KEY is not configured."
+        "500 ERROR: STRIPE_WEBHOOK_KEY is missing."
       );
 
       return NextResponse.json(
@@ -72,11 +93,19 @@ export async function POST(req: Request) {
         );
     } catch (error: any) {
       console.error(
-        "Webhook signature verification failed:"
+        "======================================"
       );
 
       console.error(
-        error?.message || error
+        "400 ERROR: STRIPE SIGNATURE VERIFICATION FAILED"
+      );
+
+      console.error(
+        error?.message
+      );
+
+      console.error(
+        "======================================"
       );
 
       return NextResponse.json(
@@ -90,16 +119,7 @@ export async function POST(req: Request) {
     }
 
     console.log(
-      "======================================"
-    );
-
-    console.log(
-      "STRIPE WEBHOOK RECEIVED"
-    );
-
-    console.log(
-      "Event type:",
-      event.type
+      "Stripe signature verified successfully."
     );
 
     console.log(
@@ -108,7 +128,8 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "======================================"
+      "Event type:",
+      event.type
     );
 
     // ---------------------------------------------------------
@@ -120,7 +141,7 @@ export async function POST(req: Request) {
       "checkout.session.completed"
     ) {
       console.log(
-        "Ignoring Stripe event:",
+        "Ignoring event:",
         event.type
       );
 
@@ -139,18 +160,18 @@ export async function POST(req: Request) {
       event.data.object as Stripe.Checkout.Session;
 
     console.log(
-      "Stripe Checkout Session:",
+      "Checkout Session ID:",
       session.id
     );
 
-    // ---------------------------------------------------------
-    // 7. Check payment status
-    // ---------------------------------------------------------
-
     console.log(
-      "Stripe payment status:",
+      "Payment status:",
       session.payment_status
     );
+
+    // ---------------------------------------------------------
+    // 7. Make sure payment is actually paid
+    // ---------------------------------------------------------
 
     if (
       session.payment_status !==
@@ -170,7 +191,15 @@ export async function POST(req: Request) {
     }
 
     console.log(
+      "======================================"
+    );
+
+    console.log(
       "PAYMENT CONFIRMED AS PAID"
+    );
+
+    console.log(
+      "======================================"
     );
 
     // ---------------------------------------------------------
@@ -181,20 +210,31 @@ export async function POST(req: Request) {
       session.metadata || {};
 
     console.log(
-      "Stripe metadata:",
+      "======================================"
+    );
+
+    console.log(
+      "STRIPE METADATA"
+    );
+
+    console.log(
       metadata
+    );
+
+    console.log(
+      "======================================"
     );
 
     const userId =
       metadata.user_id;
 
     console.log(
-      "User ID from Stripe:",
+      "user_id from Stripe:",
       userId
     );
 
     // ---------------------------------------------------------
-    // 9. Make sure user_id exists
+    // 9. Validate user ID
     // ---------------------------------------------------------
 
     if (
@@ -203,7 +243,24 @@ export async function POST(req: Request) {
       userId.trim() === ""
     ) {
       console.error(
-        "Webhook error: Missing user_id in Stripe metadata."
+        "======================================"
+      );
+
+      console.error(
+        "400 ERROR: USER ID IS MISSING"
+      );
+
+      console.error(
+        "The payment route created the Stripe session without a valid user_id."
+      );
+
+      console.error(
+        "Full metadata:",
+        metadata
+      );
+
+      console.error(
+        "======================================"
       );
 
       return NextResponse.json(
@@ -216,19 +273,24 @@ export async function POST(req: Request) {
       );
     }
 
+    console.log(
+      "VALID USER ID FOUND:",
+      userId
+    );
+
     // ---------------------------------------------------------
-    // 10. Get Admin Firestore orders collection
+    // 10. Get Firebase Admin orders collection
     // ---------------------------------------------------------
 
     console.log(
-      "Connecting to Firebase Admin Firestore..."
+      "Connecting to Firebase Admin..."
     );
 
     const ordersRef =
       adminDb.collection("orders");
 
     console.log(
-      "Firebase Admin Firestore connection ready."
+      "Firebase Admin orders collection ready."
     );
 
     // ---------------------------------------------------------
@@ -256,41 +318,33 @@ export async function POST(req: Request) {
         existingOrdersSnapshot.docs[0];
 
       console.log(
-        "======================================"
+        "Order already exists."
       );
 
       console.log(
-        "ORDER ALREADY EXISTS"
-      );
-
-      console.log(
-        "Firestore Order ID:",
+        "Existing Firestore ID:",
         existingOrder.id
-      );
-
-      console.log(
-        "Stripe Session ID:",
-        session.id
-      );
-
-      console.log(
-        "======================================"
       );
 
       return NextResponse.json({
         success: true,
         received: true,
         alreadyExists: true,
-        orderId: existingOrder.id,
+        orderId:
+          existingOrder.id,
       });
     }
+
+    console.log(
+      "No duplicate order found."
+    );
 
     // ---------------------------------------------------------
     // 12. Get Stripe line items
     // ---------------------------------------------------------
 
     console.log(
-      "Retrieving Stripe line items..."
+      "Getting Stripe line items..."
     );
 
     const stripeLineItems =
@@ -314,7 +368,20 @@ export async function POST(req: Request) {
       0
     ) {
       console.error(
-        "Webhook error: No Stripe line items found."
+        "======================================"
+      );
+
+      console.error(
+        "400 ERROR: NO STRIPE LINE ITEMS"
+      );
+
+      console.error(
+        "Session:",
+        session.id
+      );
+
+      console.error(
+        "======================================"
       );
 
       return NextResponse.json(
@@ -393,8 +460,13 @@ export async function POST(req: Request) {
         }
       );
 
+    console.log(
+      "Order items created:",
+      orderItems
+    );
+
     // ---------------------------------------------------------
-    // 14. Get totals from metadata
+    // 14. Get metadata totals
     // ---------------------------------------------------------
 
     const price =
@@ -436,7 +508,7 @@ export async function POST(req: Request) {
       "";
 
     // ---------------------------------------------------------
-    // 16. Payment Intent ID
+    // 16. Payment Intent
     // ---------------------------------------------------------
 
     const paymentIntentId =
@@ -447,7 +519,7 @@ export async function POST(req: Request) {
           null;
 
     // ---------------------------------------------------------
-    // 17. Create paid order
+    // 17. Create order data
     // ---------------------------------------------------------
 
     const now =
@@ -499,7 +571,7 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "CREATING PAID FIRESTORE ORDER"
+      "CREATING FIREBASE ORDER"
     );
 
     console.log(
@@ -508,23 +580,13 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "Stripe Session ID:",
+      "Stripe Session:",
       session.id
     );
 
     console.log(
-      "Payment Intent ID:",
-      paymentIntentId
-    );
-
-    console.log(
-      "Order items:",
-      orderItems
-    );
-
-    console.log(
-      "Total:",
-      total
+      "Payment Status:",
+      "paid"
     );
 
     console.log(
@@ -532,7 +594,7 @@ export async function POST(req: Request) {
     );
 
     // ---------------------------------------------------------
-    // 18. Save order using Firebase Admin
+    // 18. Save using Firebase Admin SDK
     // ---------------------------------------------------------
 
     const docRef =
@@ -582,17 +644,22 @@ export async function POST(req: Request) {
     );
 
     console.error(
-      "STRIPE WEBHOOK ERROR"
+      "500 ERROR: STRIPE WEBHOOK FAILED"
     );
 
     console.error(
-      "Error message:",
+      "Error:",
+      error
+    );
+
+    console.error(
+      "Message:",
       error?.message
     );
 
     console.error(
-      "Full error:",
-      error
+      "Stack:",
+      error?.stack
     );
 
     console.error(
