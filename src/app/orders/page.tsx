@@ -669,7 +669,7 @@ export default function OrdersPage() {
                           style={{
                             margin: "6px 0 0 0",
                             fontSize: "14px",
-                            color:'yellowgreen'
+                            color:'rgb(219, 255, 148)'
                           }}
                         >
                           {item.description}
