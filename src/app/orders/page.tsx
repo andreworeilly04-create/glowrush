@@ -649,7 +649,7 @@ export default function OrdersPage() {
                       <p
                         style={{
                           margin: "0 0 5px 0",
-                          color:"yellowgreen"
+                          color:"rgb(219, 255, 148)"
                         }}
                       >
                         Quantity: {item.quantity}
@@ -658,7 +658,7 @@ export default function OrdersPage() {
                       <p
                         style={{
                           margin: 0,
-                          color:"yellowgreen",
+                          color:"rgb(219, 255, 148)",
                         }}
                       >
                         Price: ${Number(item.price || 0).toFixed(2)}
