@@ -142,43 +142,65 @@ export async function POST(req: Request) {
 
       // -------------------------------------------------------
       // Product image
+      //
+      // Stripe requires a complete URL:
+      // https://example.com/image.jpg
+      //
+      // If the image is a relative URL such as:
+      // /images/product.jpg
+      //
+      // we DO NOT send it to Stripe because Stripe would
+      // reject the entire checkout request.
       // -------------------------------------------------------
 
       let productImage:
         | string
-        | undefined;
+        | undefined = undefined;
 
       if (
         typeof item?.image === "string" &&
         item.image.trim() !== ""
       ) {
-        productImage =
+        const imageUrl =
           item.image.trim();
-      } else if (
-        typeof item?.image === "object" &&
-        item.image !== null &&
-        typeof item.image.src === "string" &&
-        item.image.src.trim() !== ""
-      ) {
-        productImage =
-          item.image.src.trim();
+
+        try {
+          const parsedImageUrl =
+            new URL(imageUrl);
+
+          if (
+            parsedImageUrl.protocol ===
+              "http:" ||
+            parsedImageUrl.protocol ===
+              "https:"
+          ) {
+            productImage =
+              parsedImageUrl.toString();
+
+            console.log(
+              "Product image URL accepted:",
+              productImage
+            );
+          } else {
+            console.warn(
+              "Product image URL has invalid protocol. Not sending to Stripe:",
+              imageUrl
+            );
+          }
+        } catch {
+          console.warn(
+            "Product image is not a valid absolute URL. Not sending to Stripe:",
+            imageUrl
+          );
+        }
       }
-
-      console.log(
-        "Product:",
-        item?.name
-      );
-
-      console.log(
-        "Product image:",
-        productImage
-      );
 
       // -------------------------------------------------------
       // Product data
       // -------------------------------------------------------
 
-      const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
+      const productData:
+        Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
         {
           name:
             typeof item?.name === "string" &&
@@ -193,23 +215,13 @@ export async function POST(req: Request) {
         };
 
       // -------------------------------------------------------
-      // Add image if available
+      // Only add images when the URL is actually valid
       // -------------------------------------------------------
 
       if (productImage) {
         productData.images = [
           productImage,
         ];
-
-        console.log(
-          "Product image added to Stripe:",
-          productImage
-        );
-      } else {
-        console.warn(
-          "No product image found for:",
-          item?.name
-        );
       }
 
       lineItems.push({
@@ -220,7 +232,9 @@ export async function POST(req: Request) {
             productData,
 
           unit_amount:
-            Math.round(itemPrice * 100),
+            Math.round(
+              itemPrice * 100
+            ),
         },
 
         quantity,
@@ -384,6 +398,10 @@ export async function POST(req: Request) {
 
           metadata,
 
+          // ---------------------------------------------------
+          // KEEPING YOUR ORIGINAL URL
+          // ---------------------------------------------------
+
           success_url:
             `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
 
@@ -465,10 +483,6 @@ export async function POST(req: Request) {
       }
     );
   } catch (error: any) {
-    // ---------------------------------------------------------
-    // Stripe checkout error
-    // ---------------------------------------------------------
-
     console.error(
       "======================================"
     );
