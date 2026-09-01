@@ -8,9 +8,9 @@ const stripe = new Stripe(
 
 export async function POST(req: Request) {
   try {
-    // ---------------------------------------------------------
-    // 1. Read request body
-    // ---------------------------------------------------------
+    // =========================================================
+    // 1. READ REQUEST BODY
+    // =========================================================
 
     const body = await req.json();
 
@@ -34,9 +34,9 @@ export async function POST(req: Request) {
     console.log("User ID:", user_id);
     console.log("Items:", items);
 
-    // ---------------------------------------------------------
-    // 2. Check Firebase Admin connection
-    // ---------------------------------------------------------
+    // =========================================================
+    // 2. CHECK FIREBASE ADMIN CONNECTION
+    // =========================================================
 
     if (!adminDb) {
       console.error(
@@ -59,9 +59,9 @@ export async function POST(req: Request) {
       "Firebase Admin database initialized."
     );
 
-    // ---------------------------------------------------------
-    // 3. Validate user
-    // ---------------------------------------------------------
+    // =========================================================
+    // 3. VALIDATE USER
+    // =========================================================
 
     if (
       !user_id ||
@@ -83,9 +83,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // ---------------------------------------------------------
-    // 4. Validate cart
-    // ---------------------------------------------------------
+    // =========================================================
+    // 4. VALIDATE CART
+    // =========================================================
 
     if (
       !Array.isArray(items) ||
@@ -106,11 +106,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // ---------------------------------------------------------
-    // 5. Website URL
+    // =========================================================
+    // 5. YOUR EXISTING WEBSITE URL
     //
-    // KEEPING YOUR EXISTING URL SETUP
-    // ---------------------------------------------------------
+    // DO NOT CHANGE THIS
+    // =========================================================
 
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
@@ -121,9 +121,9 @@ export async function POST(req: Request) {
       baseUrl
     );
 
-    // ---------------------------------------------------------
-    // 6. Build Stripe line items
-    // ---------------------------------------------------------
+    // =========================================================
+    // 6. BUILD STRIPE LINE ITEMS
+    // =========================================================
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
       [];
@@ -133,6 +133,10 @@ export async function POST(req: Request) {
 
       const quantity =
         Number(item?.quantity) || 1;
+
+      // -------------------------------------------------------
+      // Validate product price
+      // -------------------------------------------------------
 
       if (
         !Number.isFinite(itemPrice) ||
@@ -155,32 +159,85 @@ export async function POST(req: Request) {
         );
       }
 
-      // -------------------------------------------------------
-      // Product image
+      // =======================================================
+      // PRODUCT IMAGE
       //
-      // Uses item.image dynamically.
-      // Nothing is hardcoded here.
-      // -------------------------------------------------------
+      // Your products use imported Next.js images:
+      //
+      // import glowstick1 from "./01-standard-glow-sticks-6-inch.png";
+      //
+      // Depending on how the image reaches this route,
+      // item.image can be either:
+      //
+      // "/some-image.png"
+      //
+      // or an object containing:
+      //
+      // { src: "/some-image.png", ... }
+      //
+      // We handle both without hardcoding filenames.
+      // =======================================================
+
+      let imagePath: string | undefined;
+
+      if (
+        typeof item?.image === "string"
+      ) {
+        imagePath =
+          item.image.trim();
+      } else if (
+        item?.image &&
+        typeof item.image === "object" &&
+        typeof item.image.src === "string"
+      ) {
+        imagePath =
+          item.image.src.trim();
+      }
 
       let imageUrl:
         | string
         | undefined;
 
       if (
-        typeof item?.image === "string" &&
-        item.image.trim() !== ""
+        imagePath &&
+        imagePath !== ""
       ) {
-        const imagePath =
-          item.image.trim();
-
         try {
-          imageUrl =
-            new URL(
+          // ---------------------------------------------------
+          // If the image is already an absolute URL,
+          // use it exactly as provided.
+          // ---------------------------------------------------
+
+          if (
+            imagePath.startsWith(
+              "http://"
+            ) ||
+            imagePath.startsWith(
+              "https://"
+            )
+          ) {
+            imageUrl = imagePath;
+          } else {
+            // -------------------------------------------------
+            // Convert the Next.js image path into an absolute
+            // URL that Stripe can access.
+            // -------------------------------------------------
+
+            imageUrl = new URL(
               imagePath.startsWith("/")
                 ? imagePath
                 : `/${imagePath}`,
               baseUrl
             ).toString();
+          }
+
+          console.log(
+            "--------------------------------------"
+          );
+
+          console.log(
+            "PRODUCT IMAGE"
+          );
 
           console.log(
             "Product:",
@@ -189,6 +246,11 @@ export async function POST(req: Request) {
 
           console.log(
             "Original image:",
+            item?.image
+          );
+
+          console.log(
+            "Image path:",
             imagePath
           );
 
@@ -196,56 +258,82 @@ export async function POST(req: Request) {
             "Stripe image URL:",
             imageUrl
           );
+
+          console.log(
+            "--------------------------------------"
+          );
         } catch (imageError) {
           console.error(
-            "Could not create image URL:",
-            imagePath
+            "Could not create Stripe image URL."
           );
 
           console.error(
+            "Product:",
+            item?.name
+          );
+
+          console.error(
+            "Image:",
+            item?.image
+          );
+
+          console.error(
+            "Error:",
             imageError
           );
 
-          imageUrl = undefined;
+          imageUrl =
+            undefined;
         }
       } else {
         console.warn(
-          "Product has no image:",
+          "Product has no usable image:",
           item?.name
         );
       }
 
-      // -------------------------------------------------------
-      // Stripe product data
-      // -------------------------------------------------------
+      // =======================================================
+      // STRIPE PRODUCT DATA
+      // =======================================================
 
       const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
         {
           name:
-            typeof item?.name === "string" &&
+            typeof item?.name ===
+              "string" &&
             item.name.trim() !== ""
               ? item.name
               : "Glow Stick",
 
           description:
-            typeof item?.description === "string"
+            typeof item?.description ===
+              "string"
               ? item.description
               : "",
         };
 
-      // -------------------------------------------------------
-      // Add product image to Stripe
-      // -------------------------------------------------------
+      // =======================================================
+      // ADD IMAGE TO STRIPE PRODUCT
+      // =======================================================
 
       if (imageUrl) {
         productData.images = [
           imageUrl,
         ];
+
+        console.log(
+          "Image successfully added to Stripe product data."
+        );
+      } else {
+        console.warn(
+          "No image added to Stripe product:",
+          item?.name
+        );
       }
 
-      // -------------------------------------------------------
-      // Add product to Stripe
-      // -------------------------------------------------------
+      // =======================================================
+      // ADD PRODUCT TO STRIPE LINE ITEMS
+      // =======================================================
 
       lineItems.push({
         price_data: {
@@ -264,14 +352,16 @@ export async function POST(req: Request) {
       });
     }
 
-    // ---------------------------------------------------------
-    // 7. Add shipping
-    // ---------------------------------------------------------
+    // =========================================================
+    // 7. ADD SHIPPING
+    // =========================================================
 
     const shippingAmount =
       Number(shipping) || 0;
 
-    if (shippingAmount > 0) {
+    if (
+      shippingAmount > 0
+    ) {
       lineItems.push({
         price_data: {
           currency: "usd",
@@ -290,14 +380,16 @@ export async function POST(req: Request) {
       });
     }
 
-    // ---------------------------------------------------------
-    // 8. Add tax
-    // ---------------------------------------------------------
+    // =========================================================
+    // 8. ADD TAX
+    // =========================================================
 
     const taxAmount =
       Number(tax) || 0;
 
-    if (taxAmount > 0) {
+    if (
+      taxAmount > 0
+    ) {
       lineItems.push({
         price_data: {
           currency: "usd",
@@ -316,15 +408,18 @@ export async function POST(req: Request) {
       });
     }
 
-    // ---------------------------------------------------------
-    // 9. Prepare Stripe metadata
-    // ---------------------------------------------------------
+    // =========================================================
+    // 9. PREPARE STRIPE METADATA
+    // =========================================================
 
     const metadata: Stripe.MetadataParam = {
-      user_id: String(user_id),
+      user_id:
+        String(user_id),
 
       price:
-        Number(price || 0).toFixed(2),
+        Number(
+          price || 0
+        ).toFixed(2),
 
       shipping:
         shippingAmount.toFixed(2),
@@ -333,16 +428,22 @@ export async function POST(req: Request) {
         taxAmount.toFixed(2),
 
       total:
-        Number(total || 0).toFixed(2),
+        Number(
+          total || 0
+        ).toFixed(2),
 
       fullName:
-        String(fullName || "").substring(
+        String(
+          fullName || ""
+        ).substring(
           0,
           500
         ),
 
       phone:
-        String(phone || "").substring(
+        String(
+          phone || ""
+        ).substring(
           0,
           500
         ),
@@ -364,9 +465,9 @@ export async function POST(req: Request) {
         ),
     };
 
-    // ---------------------------------------------------------
-    // 10. Log metadata
-    // ---------------------------------------------------------
+    // =========================================================
+    // 10. LOG METADATA
+    // =========================================================
 
     console.log(
       "Stripe metadata being sent:"
@@ -381,9 +482,9 @@ export async function POST(req: Request) {
       String(user_id)
     );
 
-    // ---------------------------------------------------------
-    // 11. Log final line items
-    // ---------------------------------------------------------
+    // =========================================================
+    // 11. LOG FINAL LINE ITEMS
+    // =========================================================
 
     console.log(
       "======================================"
@@ -405,9 +506,9 @@ export async function POST(req: Request) {
       "======================================"
     );
 
-    // ---------------------------------------------------------
-    // 12. Create Stripe Checkout Session
-    // ---------------------------------------------------------
+    // =========================================================
+    // 12. CREATE STRIPE CHECKOUT SESSION
+    // =========================================================
 
     console.log(
       "Creating Stripe Checkout Session..."
@@ -434,25 +535,25 @@ export async function POST(req: Request) {
 
           metadata,
 
-          // ---------------------------------------------------
+          // ===================================================
           // KEEPING YOUR ORIGINAL SUCCESS URL
-          // ---------------------------------------------------
+          // ===================================================
 
           success_url:
             `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
 
-          // ---------------------------------------------------
+          // ===================================================
           // KEEPING YOUR ORIGINAL CANCEL URL
-          // ---------------------------------------------------
+          // ===================================================
 
           cancel_url:
             `${baseUrl}/checkout?canceled=true`,
         }
       );
 
-    // ---------------------------------------------------------
-    // 13. Make sure Stripe returned a URL
-    // ---------------------------------------------------------
+    // =========================================================
+    // 13. MAKE SURE STRIPE RETURNED A URL
+    // =========================================================
 
     if (!session.url) {
       console.error(
@@ -471,9 +572,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // ---------------------------------------------------------
-    // 14. Successful session
-    // ---------------------------------------------------------
+    // =========================================================
+    // 14. SUCCESSFUL SESSION
+    // =========================================================
 
     console.log(
       "======================================"
@@ -502,15 +603,16 @@ export async function POST(req: Request) {
       "======================================"
     );
 
-    // ---------------------------------------------------------
-    // 15. Return checkout URL
-    // ---------------------------------------------------------
+    // =========================================================
+    // 15. RETURN CHECKOUT URL
+    // =========================================================
 
     return NextResponse.json(
       {
         success: true,
 
-        url: session.url,
+        url:
+          session.url,
 
         sessionId:
           session.id,
@@ -523,9 +625,9 @@ export async function POST(req: Request) {
       }
     );
   } catch (error: any) {
-    // ---------------------------------------------------------
-    // Stripe checkout error
-    // ---------------------------------------------------------
+    // =========================================================
+    // GLOBAL STRIPE CHECKOUT ERROR
+    // =========================================================
 
     console.error(
       "======================================"
