@@ -8,7 +8,7 @@ const stripe = new Stripe(
 export async function POST(req: Request) {
   try {
     // ---------------------------------------------------------
-    // Read request body
+    // 1. Read request body
     // ---------------------------------------------------------
 
     const body = await req.json();
@@ -26,64 +26,127 @@ export async function POST(req: Request) {
       customerEmail,
     } = body;
 
+    console.log("======================================");
+    console.log("STARTING STRIPE CHECKOUT");
+    console.log("======================================");
+
+    console.log("User ID:", user_id);
+    console.log("Items:", items);
+
     // ---------------------------------------------------------
-    // Validate required information
+    // 2. Validate user
     // ---------------------------------------------------------
 
-    if (!user_id) {
+    if (
+      !user_id ||
+      typeof user_id !== "string" ||
+      user_id.trim() === ""
+    ) {
+      console.error(
+        "Stripe checkout error: Missing user_id."
+      );
+
       return NextResponse.json(
         {
           success: false,
           error: "Missing user_id.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    if (!Array.isArray(items) || items.length === 0) {
+    // ---------------------------------------------------------
+    // 3. Validate cart
+    // ---------------------------------------------------------
+
+    if (
+      !Array.isArray(items) ||
+      items.length === 0
+    ) {
+      console.error(
+        "Stripe checkout error: Cart is empty."
+      );
+
       return NextResponse.json(
         {
           success: false,
           error: "No items were provided.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     // ---------------------------------------------------------
-    // Create Stripe line items
-    //
-    // The products are sent directly to Stripe.
-    // The webhook will retrieve these later.
+    // 4. Build Stripe line items
     // ---------------------------------------------------------
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
-      items.map((item: any) => ({
+      [];
+
+    for (const item of items) {
+      const itemPrice = Number(item?.price);
+
+      const quantity =
+        Number(item?.quantity) || 1;
+
+      if (
+        !Number.isFinite(itemPrice) ||
+        itemPrice < 0
+      ) {
+        console.error(
+          "Invalid product price:",
+          item
+        );
+
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "One of the products has an invalid price.",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      lineItems.push({
         price_data: {
           currency: "usd",
 
           product_data: {
             name:
-              item.name || "Glow Stick",
+              typeof item?.name === "string" &&
+              item.name.trim() !== ""
+                ? item.name
+                : "Glow Stick",
 
             description:
-              item.description || "",
+              typeof item?.description === "string"
+                ? item.description
+                : "",
           },
 
-          unit_amount: Math.round(
-            Number(item.price || 0) * 100
-          ),
+          unit_amount:
+            Math.round(itemPrice * 100),
         },
 
-        quantity:
-          Number(item.quantity) || 1,
-      }));
+        quantity,
+      });
+    }
 
     // ---------------------------------------------------------
-    // Add shipping
+    // 5. Add shipping as a Stripe line item
     // ---------------------------------------------------------
 
-    if (Number(shipping) > 0) {
+    const shippingAmount =
+      Number(shipping) || 0;
+
+    if (shippingAmount > 0) {
       lineItems.push({
         price_data: {
           currency: "usd",
@@ -92,9 +155,8 @@ export async function POST(req: Request) {
             name: "Shipping",
           },
 
-          unit_amount: Math.round(
-            Number(shipping) * 100
-          ),
+          unit_amount:
+            Math.round(shippingAmount * 100),
         },
 
         quantity: 1,
@@ -102,10 +164,13 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // Add tax
+    // 6. Add tax as a Stripe line item
     // ---------------------------------------------------------
 
-    if (Number(tax) > 0) {
+    const taxAmount =
+      Number(tax) || 0;
+
+    if (taxAmount > 0) {
       lineItems.push({
         price_data: {
           currency: "usd",
@@ -114,9 +179,8 @@ export async function POST(req: Request) {
             name: "Estimated Tax",
           },
 
-          unit_amount: Math.round(
-            Number(tax) * 100
-          ),
+          unit_amount:
+            Math.round(taxAmount * 100),
         },
 
         quantity: 1,
@@ -124,16 +188,17 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // Stripe metadata
+    // 7. Prepare ONLY SMALL metadata values
     //
     // IMPORTANT:
     //
-    // DO NOT put the cart/items into metadata.
+    // We intentionally DO NOT put the cart into metadata.
     //
-    // Stripe metadata has a 500-character limit per value.
+    // Stripe has a 500-character limit per metadata value.
     //
-    // The webhook retrieves the actual purchased line items
-    // directly from Stripe instead.
+    // The webhook retrieves the purchased products using:
+    //
+    // stripe.checkout.sessions.listLineItems()
     // ---------------------------------------------------------
 
     const metadata: Stripe.MetadataParam = {
@@ -141,99 +206,169 @@ export async function POST(req: Request) {
 
       price: Number(price || 0).toFixed(2),
 
-      shipping: Number(
-        shipping || 0
-      ).toFixed(2),
+      shipping:
+        shippingAmount.toFixed(2),
 
-      tax: Number(
-        tax || 0
-      ).toFixed(2),
+      tax:
+        taxAmount.toFixed(2),
 
-      total: Number(
-        total || 0
-      ).toFixed(2),
+      total:
+        Number(total || 0).toFixed(2),
 
-      fullName: String(
-        fullName || ""
-      ),
+      fullName:
+        String(fullName || "").substring(
+          0,
+          500
+        ),
 
-      phone: String(
-        phone || ""
-      ),
+      phone:
+        String(phone || "").substring(
+          0,
+          500
+        ),
 
-      shippingAddress: String(
-        shippingAddress || ""
-      ),
+      shippingAddress:
+        String(
+          shippingAddress || ""
+        ).substring(
+          0,
+          500
+        ),
 
-      customerEmail: String(
-        customerEmail || ""
-      ),
+      customerEmail:
+        String(
+          customerEmail || ""
+        ).substring(
+          0,
+          500
+        ),
     };
 
     // ---------------------------------------------------------
-    // Website URL
+    // 8. Log metadata
+    // ---------------------------------------------------------
+
+    console.log(
+      "Stripe metadata being sent:"
+    );
+
+    console.log(metadata);
+
+    // ---------------------------------------------------------
+    // 9. Website URL
     // ---------------------------------------------------------
 
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
-      "http://glowrush.vercel.app";
+      "https://glowrush.vercel.app";
 
     // ---------------------------------------------------------
-    // Create Stripe Checkout Session
-    // ---------------------------------------------------------
-
-    const session =
-      await stripe.checkout.sessions.create({
-        payment_method_types: [
-          "card",
-        ],
-
-        line_items: lineItems,
-
-        mode: "payment",
-
-        customer_email:
-          customerEmail || undefined,
-
-        // Keep only the compact metadata
-        // needed by the webhook.
-        metadata,
-
-        success_url:
-          `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
-
-        cancel_url:
-          `${baseUrl}/checkout?canceled=true`,
-      });
-
-    // ---------------------------------------------------------
-    // Log Stripe session
+    // 10. Create Stripe Checkout Session
     // ---------------------------------------------------------
 
     console.log(
-      "Stripe Checkout Session created:",
+      "Creating Stripe Checkout Session..."
+    );
+
+    const session =
+      await stripe.checkout.sessions.create(
+        {
+          payment_method_types: [
+            "card",
+          ],
+
+          mode: "payment",
+
+          line_items: lineItems,
+
+          customer_email:
+            typeof customerEmail ===
+              "string" &&
+            customerEmail.trim() !== ""
+              ? customerEmail
+              : undefined,
+
+          metadata,
+
+          success_url:
+            `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
+
+          cancel_url:
+            `${baseUrl}/checkout?canceled=true`,
+        }
+      );
+
+    // ---------------------------------------------------------
+    // 11. Make sure Stripe returned a URL
+    // ---------------------------------------------------------
+
+    if (!session.url) {
+      console.error(
+        "Stripe did not return a checkout URL."
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Stripe did not return a checkout URL.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // 12. Log successful session creation
+    // ---------------------------------------------------------
+
+    console.log(
+      "======================================"
+    );
+
+    console.log(
+      "STRIPE CHECKOUT SESSION CREATED"
+    );
+
+    console.log(
+      "Session ID:",
       session.id
     );
 
     console.log(
-      "Stripe Checkout URL:",
+      "User ID:",
+      user_id
+    );
+
+    console.log(
+      "Checkout URL:",
       session.url
     );
 
+    console.log(
+      "======================================"
+    );
+
     // ---------------------------------------------------------
-    // Return successful response
+    // 13. Return checkout URL to frontend
     // ---------------------------------------------------------
 
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json(
+      {
+        success: true,
 
-      url: session.url,
+        url: session.url,
 
-      sessionId: session.id,
-    });
+        sessionId: session.id,
+      },
+      {
+        status: 200,
+      }
+    );
   } catch (error: any) {
     // ---------------------------------------------------------
-    // Stripe/payment error
+    // Stripe checkout error
     // ---------------------------------------------------------
 
     console.error(
@@ -241,9 +376,10 @@ export async function POST(req: Request) {
     );
 
     console.error(
-      "STRIPE CHECKOUT ERROR:",
-      error
+      "STRIPE CHECKOUT ERROR"
     );
+
+    console.error(error);
 
     console.error(
       "======================================"
@@ -263,5 +399,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-
