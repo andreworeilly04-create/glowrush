@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       }
 
       // -------------------------------------------------------
-      // Get product image
+      // Product image
       // -------------------------------------------------------
 
       let productImage:
@@ -165,35 +165,13 @@ export async function POST(req: Request) {
       }
 
       console.log(
-        "======================================"
-      );
-
-      console.log(
-        "STRIPE PRODUCT DATA"
-      );
-
-      console.log(
-        "Product name:",
+        "Product:",
         item?.name
-      );
-
-      console.log(
-        "Product price:",
-        itemPrice
-      );
-
-      console.log(
-        "Product quantity:",
-        quantity
       );
 
       console.log(
         "Product image:",
         productImage
-      );
-
-      console.log(
-        "======================================"
       );
 
       // -------------------------------------------------------
@@ -215,7 +193,7 @@ export async function POST(req: Request) {
         };
 
       // -------------------------------------------------------
-      // Add product image if available
+      // Add image if available
       // -------------------------------------------------------
 
       if (productImage) {
@@ -224,19 +202,15 @@ export async function POST(req: Request) {
         ];
 
         console.log(
-          "✅ Product image added to Stripe:",
+          "Product image added to Stripe:",
           productImage
         );
       } else {
         console.warn(
-          "⚠️ No product image found for:",
+          "No product image found for:",
           item?.name
         );
       }
-
-      // -------------------------------------------------------
-      // Add line item
-      // -------------------------------------------------------
 
       lineItems.push({
         price_data: {
@@ -410,11 +384,9 @@ export async function POST(req: Request) {
 
           metadata,
 
-          // KEEPING YOUR ORIGINAL URL
           success_url:
             `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
 
-          // KEEPING YOUR ORIGINAL URL
           cancel_url:
             `${baseUrl}/checkout?canceled=true`,
         }
