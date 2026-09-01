@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import styles from "./page.orders.module.css";
-import Image from "next/image";
 import Link from "next/link";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -34,12 +33,28 @@ export default function OrdersPage() {
     databaseOrders: any[]
   ): Order[] => {
     console.log(
-      "🔎 ORDERS DEBUG: formatOrders received:",
-      databaseOrders
+      "======================================"
+    );
+
+    console.log(
+      "🔎 ORDERS DEBUG: formatOrders received"
+    );
+
+    console.log(
+      "Number of database orders:",
+      databaseOrders.length
+    );
+
+    console.log(
+      "======================================"
     );
 
     return databaseOrders.map((order: any) => {
       let items: any[] = [];
+
+      // -------------------------------------------------------
+      // Parse items
+      // -------------------------------------------------------
 
       try {
         if (Array.isArray(order.items)) {
@@ -61,10 +76,23 @@ export default function OrdersPage() {
         );
       }
 
+      // -------------------------------------------------------
+      // Debug raw items
+      // -------------------------------------------------------
+
+      console.log(
+        "📦 Raw order items:",
+        items
+      );
+
       const firstItem =
         items.length > 0
           ? items[0]
           : null;
+
+      // -------------------------------------------------------
+      // Product names + quantities
+      // -------------------------------------------------------
 
       const name =
         items.length > 0
@@ -78,6 +106,10 @@ export default function OrdersPage() {
               .join(", ")
           : "GlowRush Order";
 
+      // -------------------------------------------------------
+      // Product image
+      // -------------------------------------------------------
+
       let image = "";
 
       if (firstItem?.image) {
@@ -85,15 +117,55 @@ export default function OrdersPage() {
           typeof firstItem.image ===
           "string"
         ) {
-          image = firstItem.image;
+          image =
+            firstItem.image.trim();
         } else if (
           typeof firstItem.image ===
             "object" &&
-          firstItem.image.src
+          firstItem.image !== null
         ) {
-          image = firstItem.image.src;
+          if (
+            typeof firstItem.image.src ===
+            "string"
+          ) {
+            image =
+              firstItem.image.src.trim();
+          }
         }
       }
+
+      // -------------------------------------------------------
+      // IMAGE DEBUG
+      // -------------------------------------------------------
+
+      console.log(
+        "🖼️ ORDER IMAGE DEBUG:",
+        {
+          orderId: order.id,
+          firstItem,
+          image,
+          imageType:
+            typeof firstItem?.image,
+          hasImage:
+            Boolean(image),
+        }
+      );
+
+      if (!image) {
+        console.warn(
+          "⚠️ NO PRODUCT IMAGE FOUND FOR ORDER:",
+          order.id
+        );
+
+        console.warn(
+          "⚠️ First item:",
+          firstItem
+        );
+      }
+
+      // -------------------------------------------------------
+      // Full order debug
+      // -------------------------------------------------------
 
       console.log(
         "📦 Formatting order:",
@@ -106,6 +178,10 @@ export default function OrdersPage() {
           paymentStatus:
             order.paymentStatus,
           status: order.status,
+          price: order.price,
+          shipping: order.shipping,
+          tax: order.tax,
+          total: order.total,
         }
       );
 
@@ -121,7 +197,8 @@ export default function OrdersPage() {
           "Paid / Processing",
 
         paymentStatus:
-          order.paymentStatus || "",
+          order.paymentStatus ||
+          "",
 
         price: `$${Number(
           order.price || 0
@@ -163,7 +240,7 @@ export default function OrdersPage() {
       );
 
       // -------------------------------------------------------
-      // 1. Check Firebase user
+      // 1. Firebase user
       // -------------------------------------------------------
 
       console.log(
@@ -182,7 +259,7 @@ export default function OrdersPage() {
       }
 
       console.log(
-        "✅ ORDERS DEBUG: Firebase user exists"
+        "✅ Firebase user exists"
       );
 
       console.log(
@@ -196,7 +273,7 @@ export default function OrdersPage() {
       );
 
       // -------------------------------------------------------
-      // 2. Get UID
+      // 2. UID
       // -------------------------------------------------------
 
       const userId =
@@ -213,16 +290,16 @@ export default function OrdersPage() {
       }
 
       console.log(
-        "✅ ORDERS DEBUG: UID exists:",
+        "✅ UID exists:",
         userId
       );
 
       // -------------------------------------------------------
-      // 3. Get Firebase ID token
+      // 3. Firebase ID token
       // -------------------------------------------------------
 
       console.log(
-        "🔎 ORDERS DEBUG: Requesting Firebase ID token..."
+        "🔎 Requesting Firebase ID token..."
       );
 
       const token =
@@ -232,7 +309,7 @@ export default function OrdersPage() {
 
       if (!token) {
         console.error(
-          "❌ ORDERS DEBUG: Firebase ID token is EMPTY"
+          "❌ Firebase ID token is EMPTY"
         );
 
         setOrders([]);
@@ -241,7 +318,7 @@ export default function OrdersPage() {
       }
 
       console.log(
-        "✅ ORDERS DEBUG: Firebase ID token received"
+        "✅ Firebase ID token received"
       );
 
       console.log(
@@ -250,7 +327,7 @@ export default function OrdersPage() {
       );
 
       // -------------------------------------------------------
-      // 4. Build API URL
+      // 4. API URL
       // -------------------------------------------------------
 
       const apiUrl =
@@ -259,21 +336,21 @@ export default function OrdersPage() {
         )}`;
 
       console.log(
-        "🔎 ORDERS DEBUG: API URL:",
+        "🔎 ORDERS API URL:",
         apiUrl
       );
 
       console.log(
-        "🔎 ORDERS DEBUG: Sending user_id:",
+        "🔎 user_id being sent:",
         userId
       );
 
       // -------------------------------------------------------
-      // 5. Call Orders API
+      // 5. Call API
       // -------------------------------------------------------
 
       console.log(
-        "🔎 ORDERS DEBUG: Calling /api/orders/get..."
+        "🔎 Calling /api/orders/get..."
       );
 
       const response =
@@ -292,29 +369,29 @@ export default function OrdersPage() {
         );
 
       console.log(
-        "🔎 ORDERS DEBUG: API HTTP status:",
+        "🔎 Orders API HTTP status:",
         response.status
       );
 
       console.log(
-        "🔎 ORDERS DEBUG: API response OK:",
+        "🔎 Orders API response OK:",
         response.ok
       );
 
       // -------------------------------------------------------
-      // 6. Read raw response
+      // 6. Raw response
       // -------------------------------------------------------
 
       const responseText =
         await response.text();
 
       console.log(
-        "🔎 ORDERS DEBUG: RAW API RESPONSE:",
+        "🔎 RAW ORDERS API RESPONSE:",
         responseText
       );
 
       // -------------------------------------------------------
-      // 7. Parse response
+      // 7. Parse JSON
       // -------------------------------------------------------
 
       let data: any = {};
@@ -327,12 +404,12 @@ export default function OrdersPage() {
           : {};
 
         console.log(
-          "✅ ORDERS DEBUG: Parsed API response:",
+          "✅ Parsed Orders API response:",
           data
         );
       } catch (error) {
         console.error(
-          "❌ ORDERS DEBUG: API returned INVALID JSON"
+          "❌ Orders API returned INVALID JSON"
         );
 
         console.error(
@@ -346,12 +423,12 @@ export default function OrdersPage() {
       }
 
       // -------------------------------------------------------
-      // 8. Check HTTP error
+      // 8. HTTP error
       // -------------------------------------------------------
 
       if (!response.ok) {
         console.error(
-          "❌ ORDERS DEBUG: Orders API returned an ERROR"
+          "❌ ORDERS API ERROR"
         );
 
         console.error(
@@ -365,7 +442,7 @@ export default function OrdersPage() {
         );
 
         console.error(
-          "❌ Server response:",
+          "❌ Full server response:",
           data
         );
 
@@ -374,17 +451,13 @@ export default function OrdersPage() {
         return;
       }
 
-      console.log(
-        "✅ ORDERS DEBUG: Orders API request succeeded"
-      );
-
       // -------------------------------------------------------
-      // 9. Check success
+      // 9. API success
       // -------------------------------------------------------
 
       if (!data.success) {
         console.error(
-          "❌ ORDERS DEBUG: API success=false"
+          "❌ Orders API success=false"
         );
 
         console.error(
@@ -398,11 +471,11 @@ export default function OrdersPage() {
       }
 
       console.log(
-        "✅ ORDERS DEBUG: API success=true"
+        "✅ Orders API success=true"
       );
 
       // -------------------------------------------------------
-      // 10. Get orders
+      // 10. Database orders
       // -------------------------------------------------------
 
       const databaseOrders =
@@ -417,7 +490,7 @@ export default function OrdersPage() {
       );
 
       console.log(
-        "📦 ORDERS DEBUG: FIRESTORE ORDERS"
+        "📦 FIRESTORE ORDERS RECEIVED"
       );
 
       console.log(
@@ -426,7 +499,7 @@ export default function OrdersPage() {
       );
 
       console.log(
-        "📦 Orders:",
+        "📦 Full orders:",
         databaseOrders
       );
 
@@ -435,25 +508,29 @@ export default function OrdersPage() {
       );
 
       // -------------------------------------------------------
-      // 11. Check every order
+      // 11. No orders
       // -------------------------------------------------------
 
       if (
         databaseOrders.length === 0
       ) {
         console.warn(
-          "⚠️ ORDERS DEBUG: Firestore returned ZERO orders"
+          "⚠️ ZERO ORDERS RETURNED"
         );
 
         console.warn(
-          "⚠️ UID used for query:",
+          "⚠️ UID used:",
           userId
         );
 
         console.warn(
-          "⚠️ This means either the webhook did not create the order OR the stored user_id does not match this Firebase UID."
+          "⚠️ If Stripe payment succeeded, check the webhook and Firestore."
         );
       }
+
+      // -------------------------------------------------------
+      // 12. Inspect every order
+      // -------------------------------------------------------
 
       databaseOrders.forEach(
         (
@@ -461,26 +538,26 @@ export default function OrdersPage() {
           index: number
         ) => {
           console.log(
-            `📦 ORDER ${index + 1}:`
+            `📦 ORDER ${index + 1}`
           );
 
           console.log(
-            "   Firestore document ID:",
+            "Document ID:",
             order.id
           );
 
           console.log(
-            "   Stored user_id:",
+            "Stored user_id:",
             order.user_id
           );
 
           console.log(
-            "   Current Firebase UID:",
+            "Current Firebase UID:",
             userId
           );
 
           console.log(
-            "   user_id MATCH:",
+            "user_id MATCH:",
             String(
               order.user_id
             ) ===
@@ -488,38 +565,38 @@ export default function OrdersPage() {
           );
 
           console.log(
-            "   paymentStatus:",
+            "paymentStatus:",
             order.paymentStatus
           );
 
           console.log(
-            "   status:",
+            "status:",
             order.status
           );
 
           console.log(
-            "   total:",
+            "total:",
             order.total
           );
 
           console.log(
-            "   items:",
+            "items:",
             order.items
           );
 
           console.log(
-            "   createdAt:",
+            "createdAt:",
             order.createdAt
           );
         }
       );
 
       // -------------------------------------------------------
-      // 12. Filter paid orders
+      // 13. Filter paid orders
       // -------------------------------------------------------
 
       console.log(
-        "🔎 ORDERS DEBUG: Filtering paid orders..."
+        "🔎 Filtering paid orders..."
       );
 
       const paidOrders =
@@ -538,7 +615,7 @@ export default function OrdersPage() {
               "paid";
 
             console.log(
-              "💳 Checking payment status:",
+              "💳 Payment status check:",
               {
                 orderId:
                   order.id,
@@ -558,12 +635,12 @@ export default function OrdersPage() {
         );
 
       console.log(
-        "💳 ORDERS DEBUG: Paid orders:",
+        "💳 PAID ORDERS:",
         paidOrders.length
       );
 
       // -------------------------------------------------------
-      // 13. Sort newest first
+      // 14. Sort newest first
       // -------------------------------------------------------
 
       paidOrders.sort(
@@ -588,12 +665,8 @@ export default function OrdersPage() {
       );
 
       // -------------------------------------------------------
-      // 14. Format orders
+      // 15. Format
       // -------------------------------------------------------
-
-      console.log(
-        "🔎 ORDERS DEBUG: Formatting orders..."
-      );
 
       const formattedOrders =
         formatOrders(
@@ -601,12 +674,23 @@ export default function OrdersPage() {
         );
 
       console.log(
-        "✅ ORDERS DEBUG: Formatted orders:",
+        "======================================"
+      );
+
+      console.log(
+        "✅ FORMATTED ORDERS"
+      );
+
+      console.log(
         formattedOrders
       );
 
+      console.log(
+        "======================================"
+      );
+
       // -------------------------------------------------------
-      // 15. Set orders
+      // 16. Set state
       // -------------------------------------------------------
 
       setOrders(
@@ -614,20 +698,12 @@ export default function OrdersPage() {
       );
 
       console.log(
-        "======================================"
-      );
-
-      console.log(
-        "✅ ORDERS DEBUG: COMPLETE"
+        "✅ Orders state updated"
       );
 
       console.log(
         "Displayed orders:",
         formattedOrders.length
-      );
-
-      console.log(
-        "======================================"
       );
     } catch (error: any) {
       console.error(
@@ -635,7 +711,7 @@ export default function OrdersPage() {
       );
 
       console.error(
-        "❌ ORDERS DEBUG: LOAD ORDERS CRASHED"
+        "❌ ORDERS LOAD CRASHED"
       );
 
       console.error(
@@ -662,7 +738,7 @@ export default function OrdersPage() {
   };
 
   // =========================================================
-  // WATCH FIREBASE AUTHENTICATION
+  // FIREBASE AUTH
   // =========================================================
 
   useEffect(() => {
@@ -677,13 +753,9 @@ export default function OrdersPage() {
           firebaseUser
         ) => {
           try {
-            // -------------------------------------------------
-            // No user
-            // -------------------------------------------------
-
             if (!firebaseUser) {
               console.warn(
-                "⚠️ Orders - no Firebase user is signed in."
+                "⚠️ No Firebase user is signed in."
               );
 
               setOrders([]);
@@ -693,16 +765,12 @@ export default function OrdersPage() {
               return;
             }
 
-            // -------------------------------------------------
-            // User exists
-            // -------------------------------------------------
-
             console.log(
               "======================================"
             );
 
             console.log(
-              "✅ ORDERS: Firebase user authenticated"
+              "✅ FIREBASE USER AUTHENTICATED"
             );
 
             console.log(
@@ -719,16 +787,12 @@ export default function OrdersPage() {
               "======================================"
             );
 
-            // -------------------------------------------------
-            // Load orders
-            // -------------------------------------------------
-
             await loadOrders(
               firebaseUser
             );
           } catch (error) {
             console.error(
-              "❌ Orders - authentication error:",
+              "❌ Authentication error:",
               error
             );
 
@@ -761,7 +825,7 @@ export default function OrdersPage() {
 
       if (!firebaseUser) {
         console.error(
-          "❌ Orders - cannot track order because no Firebase user is signed in."
+          "❌ Cannot track order: no Firebase user."
         );
 
         return;
@@ -777,7 +841,7 @@ export default function OrdersPage() {
       );
     } catch (error) {
       console.error(
-        "❌ Orders - failed to refresh orders:",
+        "❌ Failed to refresh orders:",
         error
       );
     } finally {
@@ -806,24 +870,16 @@ export default function OrdersPage() {
 
         if (!firebaseUser) {
           console.error(
-            "❌ Orders - cannot cancel order because no Firebase user is signed in."
+            "❌ Cannot cancel order: no Firebase user."
           );
 
           return;
         }
 
-        // -----------------------------------------------------
-        // Get Firebase token
-        // -----------------------------------------------------
-
         const token =
           await firebaseUser.getIdToken(
             true
           );
-
-        // -----------------------------------------------------
-        // Call delete API
-        // -----------------------------------------------------
 
         const response =
           await fetch(
@@ -857,11 +913,13 @@ export default function OrdersPage() {
 
         try {
           data = text
-            ? JSON.parse(text)
+            ? JSON.parse(
+                text
+              )
             : {};
         } catch {
           console.error(
-            "❌ Orders - invalid delete response:",
+            "❌ Invalid delete response:",
             text
           );
 
@@ -886,13 +944,13 @@ export default function OrdersPage() {
           );
         } else {
           console.error(
-            "❌ Orders - failed to cancel order:",
+            "❌ Failed to cancel order:",
             data?.error
           );
         }
       } catch (error) {
         console.error(
-          "❌ Orders - cancel order error:",
+          "❌ Cancel order error:",
           error
         );
       }
@@ -916,10 +974,6 @@ export default function OrdersPage() {
         Your Orders
       </h1>
 
-      {/* =====================================================
-          LOADING
-      ===================================================== */}
-
       {loading ? (
         <div
           className={
@@ -932,10 +986,6 @@ export default function OrdersPage() {
         </div>
       ) : orders.length ===
         0 ? (
-        /* ===================================================
-           NO ORDERS
-        =================================================== */
-
         <div
           className={
             styles.emptyState
@@ -956,10 +1006,6 @@ export default function OrdersPage() {
           </Link>
         </div>
       ) : (
-        /* ===================================================
-           ORDERS
-        =================================================== */
-
         <div
           className={
             styles.ordersList
@@ -984,8 +1030,8 @@ export default function OrdersPage() {
                     styles.orderLeft
                   }
                 >
-                  {order.image && (
-                    <Image
+                  {order.image ? (
+                    <img
                       src={
                         order.image
                       }
@@ -997,7 +1043,49 @@ export default function OrdersPage() {
                       alt={
                         order.name
                       }
+                      onError={(
+                        event
+                      ) => {
+                        console.error(
+                          "❌ PRODUCT IMAGE FAILED TO LOAD:",
+                          {
+                            orderId:
+                              order.id,
+
+                            image:
+                              order.image,
+                          }
+                        );
+
+                        event.currentTarget.style.display =
+                          "none";
+                      }}
                     />
+                  ) : (
+                    <div
+                      style={{
+                        width:
+                          "80px",
+                        height:
+                          "80px",
+                        display:
+                          "flex",
+                        alignItems:
+                          "center",
+                        justifyContent:
+                          "center",
+                        border:
+                          "1px solid #ddd",
+                        borderRadius:
+                          "8px",
+                        fontSize:
+                          "12px",
+                        textAlign:
+                          "center",
+                      }}
+                    >
+                      No image
+                    </div>
                   )}
 
                   <div
@@ -1084,10 +1172,6 @@ export default function OrdersPage() {
                       }
                     </span>
                   </div>
-
-                  {/* ========================================
-                      BUTTONS
-                  ======================================== */}
 
                   <div
                     className={
