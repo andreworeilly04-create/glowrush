@@ -141,10 +141,12 @@ export async function POST(req: Request) {
       }
 
       // -------------------------------------------------------
-      // Get product image from cart item
+      // Get product image
       // -------------------------------------------------------
 
-      let productImage: string | undefined;
+      let productImage:
+        | string
+        | undefined;
 
       if (
         typeof item?.image === "string" &&
@@ -163,17 +165,39 @@ export async function POST(req: Request) {
       }
 
       console.log(
-        "Product being sent to Stripe:",
-        {
-          name: item?.name,
-          price: itemPrice,
-          quantity,
-          image: productImage,
-        }
+        "======================================"
+      );
+
+      console.log(
+        "STRIPE PRODUCT DATA"
+      );
+
+      console.log(
+        "Product name:",
+        item?.name
+      );
+
+      console.log(
+        "Product price:",
+        itemPrice
+      );
+
+      console.log(
+        "Product quantity:",
+        quantity
+      );
+
+      console.log(
+        "Product image:",
+        productImage
+      );
+
+      console.log(
+        "======================================"
       );
 
       // -------------------------------------------------------
-      // Build product data
+      // Product data
       // -------------------------------------------------------
 
       const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
@@ -191,7 +215,7 @@ export async function POST(req: Request) {
         };
 
       // -------------------------------------------------------
-      // Add image ONLY when a valid image exists
+      // Add product image if available
       // -------------------------------------------------------
 
       if (productImage) {
@@ -200,7 +224,7 @@ export async function POST(req: Request) {
         ];
 
         console.log(
-          "✅ Stripe product image added:",
+          "✅ Product image added to Stripe:",
           productImage
         );
       } else {
@@ -209,6 +233,10 @@ export async function POST(req: Request) {
           item?.name
         );
       }
+
+      // -------------------------------------------------------
+      // Add line item
+      // -------------------------------------------------------
 
       lineItems.push({
         price_data: {
@@ -382,9 +410,11 @@ export async function POST(req: Request) {
 
           metadata,
 
+          // KEEPING YOUR ORIGINAL URL
           success_url:
             `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
 
+          // KEEPING YOUR ORIGINAL URL
           cancel_url:
             `${baseUrl}/checkout?canceled=true`,
         }
