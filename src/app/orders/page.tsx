@@ -661,8 +661,11 @@ export default function OrdersPage() {
                           color:"rgb(219, 255, 148)",
                         }}
                       >
-                        Price: ${Number(item.price || 0).toFixed(2)}
+                        Price:
                       </p>
+                      <p style={{
+                        color:"yellowgreen"
+                      }}> ${Number(item.price || 0).toFixed(2)}</p>
 
                       {item.description && (
                         <p
