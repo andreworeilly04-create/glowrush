@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getAuth } from "firebase-admin/auth";
-import { adminDb } from "@/lib/firebase-admin";
 
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY!
@@ -10,20 +9,15 @@ const stripe = new Stripe(
 export async function POST(req: Request) {
   try {
     console.log("======================================");
-    console.log("PAYMENT ROUTE STARTED");
+    console.log("STARTING STRIPE PAYMENT ROUTE");
     console.log("======================================");
 
     // =========================================================
-    // 1. GET FIREBASE ID TOKEN FROM AUTHORIZATION HEADER
+    // 1. GET AUTHORIZATION HEADER
     // =========================================================
 
     const authorization =
       req.headers.get("authorization");
-
-    console.log(
-      "Authorization header exists:",
-      !!authorization
-    );
 
     if (!authorization) {
       console.error(
@@ -33,109 +27,54 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Authentication required. Missing Authorization header.",
+          error: "Missing Authorization header.",
         },
-        { status: 401 }
-      );
-    }
-
-    // Expected:
-    // Authorization: Bearer FIREBASE_ID_TOKEN
-
-    if (
-      !authorization
-        .toLowerCase()
-        .startsWith("bearer ")
-    ) {
-      console.error(
-        "PAYMENT ERROR: Authorization header is not Bearer format."
-      );
-
-      return NextResponse.json(
         {
-          success: false,
-          error:
-            "Invalid Authorization header format.",
-        },
-        { status: 401 }
-      );
-    }
-
-    const idToken =
-      authorization.substring(7).trim();
-
-    if (!idToken) {
-      console.error(
-        "PAYMENT ERROR: Firebase ID token is empty."
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Missing Firebase ID token.",
-        },
-        { status: 401 }
+          status: 401,
+        }
       );
     }
 
     // =========================================================
-    // 2. VERIFY FIREBASE ID TOKEN WITH ADMIN SDK
+    // 2. EXTRACT FIREBASE TOKEN
+    // =========================================================
+
+    const token =
+      authorization.startsWith("Bearer ")
+        ? authorization.substring(7)
+        : null;
+
+    if (!token) {
+      console.error(
+        "PAYMENT ERROR: Invalid Authorization header."
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid Authorization header.",
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    // =========================================================
+    // 3. VERIFY FIREBASE USER
     // =========================================================
 
     let decodedToken;
 
     try {
-      console.log(
-        "Verifying Firebase ID token..."
-      );
-
       decodedToken =
-        await getAuth().verifyIdToken(
-          idToken
-        );
-
-      console.log(
-        "Firebase ID token verified successfully."
-      );
-
-      console.log(
-        "Verified Firebase UID:",
-        decodedToken.uid
-      );
-
-      console.log(
-        "Verified Firebase email:",
-        decodedToken.email || "No email"
-      );
+        await getAuth().verifyIdToken(token);
     } catch (error: any) {
       console.error(
-        "======================================"
+        "FIREBASE TOKEN VERIFICATION FAILED:"
       );
 
-      console.error(
-        "FIREBASE TOKEN VERIFICATION FAILED"
-      );
-
-      console.error(
-        "Error:",
-        error
-      );
-
-      console.error(
-        "Error message:",
-        error?.message
-      );
-
-      console.error(
-        "Error code:",
-        error?.code
-      );
-
-      console.error(
-        "======================================"
-      );
+      console.error(error);
 
       return NextResponse.json(
         {
@@ -143,27 +82,16 @@ export async function POST(req: Request) {
           error:
             "Invalid or expired Firebase authentication token.",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
-
-    // =========================================================
-    // 3. GET THE REAL USER ID
-    //
-    // IMPORTANT:
-    // We get this from the verified Firebase token.
-    //
-    // We DO NOT trust user_id sent in the request body.
-    // =========================================================
 
     const userId =
       decodedToken.uid;
 
-    if (
-      !userId ||
-      typeof userId !== "string" ||
-      userId.trim() === ""
-    ) {
+    if (!userId) {
       console.error(
         "PAYMENT ERROR: Firebase token did not contain a UID."
       );
@@ -172,14 +100,20 @@ export async function POST(req: Request) {
         {
           success: false,
           error:
-            "Authenticated Firebase user does not have a valid UID.",
+            "Unable to determine Firebase user ID.",
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
 
     console.log(
-      "AUTHENTICATED USER ID:",
+      "FIREBASE USER VERIFIED"
+    );
+
+    console.log(
+      "Firebase UID:",
       userId
     );
 
@@ -187,11 +121,8 @@ export async function POST(req: Request) {
     // 4. READ REQUEST BODY
     // =========================================================
 
-    const body = await req.json();
-
-    console.log(
-      "Payment request body received."
-    );
+    const body =
+      await req.json();
 
     const {
       items,
@@ -206,17 +137,7 @@ export async function POST(req: Request) {
     } = body;
 
     console.log(
-      "User ID from verified Firebase token:",
-      userId
-    );
-
-    console.log(
-      "User ID supplied by frontend:",
-      body?.user_id || "NOT PROVIDED"
-    );
-
-    console.log(
-      "Items:",
+      "Items received:",
       items
     );
 
@@ -235,10 +156,11 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            "No items were provided.",
+          error: "No items were provided.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -256,21 +178,12 @@ export async function POST(req: Request) {
       const quantity =
         Number(item?.quantity) || 1;
 
-      console.log(
-        "Processing cart item:",
-        {
-          name: item?.name,
-          price: itemPrice,
-          quantity,
-        }
-      );
-
       if (
         !Number.isFinite(itemPrice) ||
         itemPrice < 0
       ) {
         console.error(
-          "PAYMENT ERROR: Invalid product price.",
+          "PAYMENT ERROR: Invalid product price:",
           item
         );
 
@@ -280,26 +193,9 @@ export async function POST(req: Request) {
             error:
               "One of the products has an invalid price.",
           },
-          { status: 400 }
-        );
-      }
-
-      if (
-        !Number.isFinite(quantity) ||
-        quantity <= 0
-      ) {
-        console.error(
-          "PAYMENT ERROR: Invalid product quantity.",
-          item
-        );
-
-        return NextResponse.json(
           {
-            success: false,
-            error:
-              "One of the products has an invalid quantity.",
-          },
-          { status: 400 }
+            status: 400,
+          }
         );
       }
 
@@ -309,35 +205,19 @@ export async function POST(req: Request) {
 
           product_data: {
             name:
-              typeof item?.name ===
-                "string" &&
+              typeof item?.name === "string" &&
               item.name.trim() !== ""
                 ? item.name
                 : "Glow Stick",
 
             description:
-              typeof item?.description ===
-                "string"
+              typeof item?.description === "string"
                 ? item.description
                 : "",
-
-            // Stripe product images must be publicly
-            // accessible URLs.
-            ...(typeof item?.image ===
-              "string" &&
-            item.image.startsWith("http")
-              ? {
-                  images: [
-                    item.image,
-                  ],
-                }
-              : {}),
           },
 
           unit_amount:
-            Math.round(
-              itemPrice * 100
-            ),
+            Math.round(itemPrice * 100),
         },
 
         quantity,
@@ -397,123 +277,102 @@ export async function POST(req: Request) {
     }
 
     // =========================================================
-    // 9. PREPARE STRIPE METADATA
-    //
-    // user_id comes from Firebase Admin verification.
+    // 9. CREATE STRIPE METADATA
     // =========================================================
 
     const metadata: Stripe.MetadataParam = {
-      user_id: String(userId),
+      user_id: userId,
 
       price:
-        Number(price || 0).toFixed(2),
+        Number(price || 0)
+          .toFixed(2),
 
       shipping:
-        shippingAmount.toFixed(2),
+        shippingAmount
+          .toFixed(2),
 
       tax:
-        taxAmount.toFixed(2),
+        taxAmount
+          .toFixed(2),
 
       total:
-        Number(total || 0).toFixed(2),
+        Number(total || 0)
+          .toFixed(2),
 
       fullName:
-        String(
-          fullName || ""
-        ).substring(0, 500),
+        String(fullName || "")
+          .substring(0, 500),
 
       phone:
-        String(
-          phone || ""
-        ).substring(0, 500),
+        String(phone || "")
+          .substring(0, 500),
 
       shippingAddress:
-        String(
-          shippingAddress || ""
-        ).substring(0, 500),
+        String(shippingAddress || "")
+          .substring(0, 500),
 
       customerEmail:
-        String(
-          customerEmail ||
-            decodedToken.email ||
-            ""
-        ).substring(0, 500),
+        String(customerEmail || "")
+          .substring(0, 500),
     };
 
     console.log(
-      "======================================"
-    );
-
-    console.log(
-      "STRIPE METADATA"
+      "STRIPE METADATA:"
     );
 
     console.log(
       metadata
     );
 
-    console.log(
-      "======================================"
-    );
-
     // =========================================================
-    // 10. WEBSITE URL
+    // 10. GET WEBSITE URL
     // =========================================================
 
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
       "https://glowrush.vercel.app";
 
-    console.log(
-      "Base URL:",
-      baseUrl
-    );
-
     // =========================================================
     // 11. CREATE STRIPE CHECKOUT SESSION
     // =========================================================
 
     console.log(
-      "Creating Stripe Checkout Session..."
+      "CREATING STRIPE CHECKOUT SESSION..."
     );
 
     const session =
-      await stripe.checkout.sessions.create(
-        {
-          payment_method_types: [
-            "card",
-          ],
+      await stripe.checkout.sessions.create({
+        payment_method_types: [
+          "card",
+        ],
 
-          mode: "payment",
+        mode: "payment",
 
-          line_items:
-            lineItems,
+        line_items:
+          lineItems,
 
-          customer_email:
-            typeof customerEmail ===
-              "string" &&
-            customerEmail.trim() !== ""
-              ? customerEmail
-              : decodedToken.email ||
-                undefined,
+        customer_email:
+          typeof customerEmail === "string" &&
+          customerEmail.trim() !== ""
+            ? customerEmail
+            : undefined,
 
-          metadata,
+        metadata,
 
-          success_url:
-            `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        success_url:
+          `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
 
-          cancel_url:
-            `${baseUrl}/checkout?canceled=true`,
-        }
-      );
+        cancel_url:
+          `${baseUrl}/checkout?canceled=true`,
+      });
 
     // =========================================================
-    // 12. VERIFY STRIPE RETURNED URL
+    // 12. MAKE SURE STRIPE RETURNED URL
     // =========================================================
 
     if (!session.url) {
       console.error(
-        "STRIPE ERROR: No checkout URL returned."
+        "PAYMENT ERROR: Stripe did not return a checkout URL."
       );
 
       return NextResponse.json(
@@ -522,103 +381,56 @@ export async function POST(req: Request) {
           error:
             "Stripe did not return a checkout URL.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
-    // =========================================================
-    // 13. SUCCESS LOGGING
-    // =========================================================
-
-    console.log(
-      "======================================"
-    );
-
+    console.log("======================================");
     console.log(
       "STRIPE CHECKOUT SESSION CREATED"
     );
-
     console.log(
-      "Stripe Session ID:",
+      "Session ID:",
       session.id
     );
-
     console.log(
-      "Verified Firebase User ID:",
+      "Firebase User ID:",
       userId
     );
-
-    console.log(
-      "Stripe Metadata user_id:",
-      metadata.user_id
-    );
-
-    console.log(
-      "Checkout URL:",
-      session.url
-    );
-
-    console.log(
-      "======================================"
-    );
+    console.log("======================================");
 
     // =========================================================
-    // 14. RETURN TO FRONTEND
+    // 13. RETURN STRIPE URL
     // =========================================================
 
     return NextResponse.json(
       {
         success: true,
 
-        url: session.url,
+        url:
+          session.url,
 
         sessionId:
           session.id,
-
-        // This lets us verify from the browser
-        // that the server used the correct UID.
-        user_id: userId,
       },
       {
         status: 200,
       }
     );
   } catch (error: any) {
+    console.error("======================================");
     console.error(
-      "======================================"
+      "PAYMENT ROUTE ERROR"
     );
-
-    console.error(
-      "STRIPE CHECKOUT ERROR"
-    );
-
-    console.error(
-      "Error:",
-      error
-    );
-
-    console.error(
-      "Error message:",
-      error?.message
-    );
-
-    console.error(
-      "Error type:",
-      error?.type
-    );
-
-    console.error(
-      "Error code:",
-      error?.code
-    );
-
-    console.error(
-      "======================================"
-    );
+    console.error(error);
+    console.error("======================================");
 
     return NextResponse.json(
       {
         success: false,
+
         error:
           error?.message ||
           "Failed to create Stripe checkout session.",
