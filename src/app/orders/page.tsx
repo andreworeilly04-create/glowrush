@@ -641,6 +641,7 @@ export default function OrdersPage() {
                       <h3
                         style={{
                           margin: "0 0 6px 0",
+                          color:"yellowgreen",
                         }}
                       >
                         {item.name}
@@ -649,6 +650,7 @@ export default function OrdersPage() {
                       <p
                         style={{
                           margin: "0 0 5px 0",
+                          color:"yellowgreen"
                         }}
                       >
                         Quantity: {item.quantity}
