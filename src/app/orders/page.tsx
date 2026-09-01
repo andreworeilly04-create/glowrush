@@ -1,21 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import styles from "./page.orders.module.css";
 import Image from "next/image";
 import Link from "next/link";
 
 import { onAuthStateChanged } from "firebase/auth";
-
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-
-import { auth, db } from "@/lib/db";
+import { auth } from "@/lib/db";
 
 type Order = {
   id: string;
@@ -129,11 +120,11 @@ export default function OrdersPage() {
   };
 
   // ---------------------------------------------------------
-  // Load orders for authenticated Firebase user
+  // Load orders through SERVER API
   // ---------------------------------------------------------
 
   const loadOrders = async (
-    userId: string
+    firebaseUser: any
   ) => {
     try {
       console.log(
@@ -146,77 +137,102 @@ export default function OrdersPage() {
 
       console.log(
         "Firebase UID:",
-        userId
+        firebaseUser?.uid
       );
 
       console.log(
         "======================================"
       );
 
-      if (!userId) {
+      if (!firebaseUser) {
         console.error(
-          "Orders - empty Firebase UID."
+          "Orders - no Firebase user."
         );
 
         setOrders([]);
+        return;
+      }
+
+      // -------------------------------------------------------
+      // Get Firebase ID token
+      // -------------------------------------------------------
+
+      const token =
+        await firebaseUser.getIdToken();
+
+      console.log(
+        "Orders - Firebase ID token obtained."
+      );
+
+      // -------------------------------------------------------
+      // Call server-side orders API
+      // -------------------------------------------------------
+
+      const response = await fetch(
+        "/api/orders/get",
+        {
+          method: "GET",
+
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+
+          cache: "no-store",
+        }
+      );
+
+      const text =
+        await response.text();
+
+      let data: any = {};
+
+      try {
+        data = text
+          ? JSON.parse(text)
+          : {};
+      } catch {
+        console.error(
+          "Orders - server returned invalid JSON:",
+          text
+        );
 
         return;
       }
 
-      const ordersRef =
-        collection(db, "orders");
-
-      // -------------------------------------------------------
-      // IMPORTANT
-      //
-      // The webhook saves:
-      //
-      // user_id: String(userId)
-      //
-      // Therefore we query using the exact Firebase Auth UID.
-      // -------------------------------------------------------
-
-      const q = query(
-        ordersRef,
-        where(
-          "user_id",
-          "==",
-          String(userId)
-        )
-      );
-
-      const querySnapshot =
-        await getDocs(q);
-
       console.log(
-        "Orders - Firestore documents found:",
-        querySnapshot.size
+        "Orders API response:",
+        data
       );
+
+      if (!response.ok) {
+        console.error(
+          "Orders API error:",
+          data?.error
+        );
+
+        setOrders([]);
+        return;
+      }
+
+      if (!data.success) {
+        console.error(
+          "Orders API failed:",
+          data?.error
+        );
+
+        setOrders([]);
+        return;
+      }
 
       const databaseOrders =
-        querySnapshot.docs.map(
-          (doc) => {
-            const data = doc.data();
+        Array.isArray(data.orders)
+          ? data.orders
+          : [];
 
-            console.log(
-              "Orders - Firestore order:",
-              {
-                id: doc.id,
-                user_id: data.user_id,
-                paymentStatus:
-                  data.paymentStatus,
-                status: data.status,
-                createdAt:
-                  data.createdAt,
-              }
-            );
-
-            return {
-              id: doc.id,
-              ...data,
-            };
-          }
-        );
+      console.log(
+        "Orders received:",
+        databaseOrders.length
+      );
 
       // -------------------------------------------------------
       // Only show paid orders
@@ -239,7 +255,7 @@ export default function OrdersPage() {
         );
 
       console.log(
-        "Orders - paid orders:",
+        "Paid orders:",
         paidOrders.length
       );
 
@@ -261,13 +277,17 @@ export default function OrdersPage() {
         }
       );
 
+      // -------------------------------------------------------
+      // Format orders
+      // -------------------------------------------------------
+
       const formattedOrders =
         formatOrders(
           paidOrders
         );
 
       console.log(
-        "Orders - formatted orders:",
+        "Formatted orders:",
         formattedOrders
       );
 
@@ -280,7 +300,7 @@ export default function OrdersPage() {
       );
 
       console.error(
-        "ORDERS FIRESTORE ERROR:",
+        "ORDERS LOAD ERROR:",
         error
       );
 
@@ -317,7 +337,6 @@ export default function OrdersPage() {
               );
 
               setOrders([]);
-
               setLoading(false);
 
               return;
@@ -346,7 +365,7 @@ export default function OrdersPage() {
             );
 
             await loadOrders(
-              firebaseUser.uid
+              firebaseUser
             );
           } catch (error) {
             console.error(
@@ -390,7 +409,7 @@ export default function OrdersPage() {
       }
 
       await loadOrders(
-        firebaseUser.uid
+        firebaseUser
       );
     } catch (error) {
       console.error(
@@ -416,6 +435,20 @@ export default function OrdersPage() {
             ? orderId.substring(4)
             : orderId;
 
+        const firebaseUser =
+          auth.currentUser;
+
+        if (!firebaseUser) {
+          console.error(
+            "Orders - cannot cancel order because no Firebase user is signed in."
+          );
+
+          return;
+        }
+
+        const token =
+          await firebaseUser.getIdToken();
+
         const response =
           await fetch(
             "/api/orders/delete",
@@ -425,6 +458,9 @@ export default function OrdersPage() {
               headers: {
                 "Content-Type":
                   "application/json",
+
+                Authorization:
+                  `Bearer ${token}`,
               },
 
               body: JSON.stringify({
@@ -684,4 +720,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
