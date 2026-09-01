@@ -21,6 +21,10 @@ export default function CheckoutPage() {
 
   const [processing, setProcessing] = useState(false);
 
+  // ---------------------------------------------------------
+  // Handle form changes
+  // ---------------------------------------------------------
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -39,9 +43,9 @@ export default function CheckoutPage() {
   const subtotal = cart.reduce(
     (total: number, item: any) => {
       const price = Number(item.price) || 0;
-      const qty = Number(item.quantity) || 1;
+      const quantity = Number(item.quantity) || 1;
 
-      return total + price * qty;
+      return total + price * quantity;
     },
     0
   );
@@ -53,7 +57,7 @@ export default function CheckoutPage() {
   const total = subtotal + shipping + tax;
 
   // ---------------------------------------------------------
-  // Get logged-in user ID
+  // Get logged-in Firebase user ID
   // ---------------------------------------------------------
 
   const getUserId = (): string | null => {
@@ -87,7 +91,7 @@ export default function CheckoutPage() {
         null;
 
       console.log(
-        "Checkout - Firebase user ID:",
+        "Checkout - Firebase UID:",
         userId
       );
 
@@ -123,6 +127,16 @@ export default function CheckoutPage() {
       setProcessing(true);
 
       // -----------------------------------------------------
+      // Make sure cart has products
+      // -----------------------------------------------------
+
+      if (!cart || cart.length === 0) {
+        throw new Error(
+          "Your cart is empty."
+        );
+      }
+
+      // -----------------------------------------------------
       // Get Firebase user ID
       // -----------------------------------------------------
 
@@ -139,16 +153,38 @@ export default function CheckoutPage() {
       // -----------------------------------------------------
 
       const shippingAddress = [
-        formData.address,
-        formData.city,
-        formData.state,
-        formData.zipCode,
+        formData.address.trim(),
+        formData.city.trim(),
+        formData.state.trim(),
+        formData.zipCode.trim(),
       ]
         .filter(Boolean)
         .join(", ");
 
       // -----------------------------------------------------
-      // Build order
+      // Prepare customer information
+      // -----------------------------------------------------
+
+      const customerEmail =
+        formData.email
+          .trim()
+          .toLowerCase();
+
+      const fullName =
+        formData.fullName.trim();
+
+      const phone =
+        formData.phone.trim();
+
+      // -----------------------------------------------------
+      // Prepare order information
+      //
+      // IMPORTANT:
+      //
+      // This is NOT saved to Firestore here.
+      //
+      // The Stripe webhook creates the actual Firestore
+      // order after Stripe confirms successful payment.
       // -----------------------------------------------------
 
       const orderData = {
@@ -172,12 +208,13 @@ export default function CheckoutPage() {
           total.toFixed(2)
         ),
 
-        phone: formData.phone,
+        fullName,
+
+        phone,
 
         shippingAddress,
 
-        customerEmail:
-          formData.email.trim().toLowerCase(),
+        customerEmail,
 
         status: "Paid / Processing",
 
@@ -186,125 +223,49 @@ export default function CheckoutPage() {
       };
 
       console.log(
-        "Checkout - order being prepared:",
+        "Checkout - order information:",
         orderData
       );
 
       // -----------------------------------------------------
-      // Save order to Firebase
-      // -----------------------------------------------------
-
-      console.log(
-        "Checkout - saving order to Firebase..."
-      );
-
-      const saveResponse = await fetch(
-        "/api/orders/save",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify(
-            orderData
-          ),
-        }
-      );
-
-      const saveText =
-        await saveResponse.text();
-
-      let saveData: any = {};
-
-      try {
-        saveData = saveText
-          ? JSON.parse(saveText)
-          : {};
-      } catch {
-        console.error(
-          "Checkout - invalid save order response:",
-          saveText
-        );
-
-        throw new Error(
-          "The order server returned an invalid response."
-        );
-      }
-
-      console.log(
-        "Checkout - save order response:",
-        saveData
-      );
-
-      if (!saveResponse.ok || !saveData.success) {
-        throw new Error(
-          saveData?.error ||
-            saveData?.message ||
-            "Failed to save your order."
-        );
-      }
-
-      console.log(
-        "Checkout - order saved successfully:",
-        saveData.orderId
-      );
-
-      // -----------------------------------------------------
-      // Save recent order locally as a backup
-      // -----------------------------------------------------
-
-      localStorage.setItem(
-        "recent_order",
-        JSON.stringify({
-          ...orderData,
-          orderId:
-            saveData.orderId || null,
-        })
-      );
-
-      // -----------------------------------------------------
       // Save shipping information locally
+      //
+      // This is only used to preserve checkout information.
+      // It does NOT create an order.
       // -----------------------------------------------------
 
       localStorage.setItem(
         "shipped_address",
         JSON.stringify({
-          fullName:
-            formData.fullName,
-
-          email:
-            formData.email,
-
-          phone:
-            formData.phone,
-
-          address:
-            formData.address,
-
-          city:
-            formData.city,
-
-          state:
-            formData.state,
-
-          zipCode:
-            formData.zipCode,
+          fullName,
+          email: customerEmail,
+          phone,
+          address: formData.address.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          zipCode: formData.zipCode.trim(),
         })
       );
 
       // -----------------------------------------------------
       // Create Stripe Checkout Session
+      //
+      // IMPORTANT:
+      //
+      // We send the order information to /api/payment.
+      //
+      // The payment route creates the Stripe session.
+      //
+      // The webhook creates the Firestore order ONLY after
+      // successful payment.
       // -----------------------------------------------------
 
       console.log(
-        "Checkout - creating Stripe session..."
+        "Checkout - creating Stripe payment session..."
       );
 
       const response = await fetch(
-        "/api/webhook",
+        "/api/payment",
         {
           method: "POST",
 
@@ -314,12 +275,44 @@ export default function CheckoutPage() {
           },
 
           body: JSON.stringify({
+            // Cart items
             items: cart,
-            shipping,
-            tax,
+
+            // Order totals
+            price: Number(
+              subtotal.toFixed(2)
+            ),
+
+            shipping: Number(
+              shipping.toFixed(2)
+            ),
+
+            tax: Number(
+              tax.toFixed(2)
+            ),
+
+            total: Number(
+              total.toFixed(2)
+            ),
+
+            // Firebase user
+            user_id: userId,
+
+            // Customer information
+            fullName,
+
+            phone,
+
+            shippingAddress,
+
+            customerEmail,
           }),
         }
       );
+
+      // -----------------------------------------------------
+      // Read payment API response
+      // -----------------------------------------------------
 
       const text =
         await response.text();
@@ -332,33 +325,61 @@ export default function CheckoutPage() {
           : {};
       } catch {
         console.error(
-          "Invalid response from checkout API:",
+          "Checkout - invalid payment API response:",
           text
         );
 
         throw new Error(
-          "Invalid response from checkout server."
+          "The payment server returned an invalid response."
         );
       }
 
       console.log(
-        "Checkout - Stripe response:",
+        "Checkout - payment API response:",
         data
       );
 
-      if (!response.ok) {
+      // -----------------------------------------------------
+      // Check payment API response
+      // -----------------------------------------------------
+
+      if (!response.ok || !data.success) {
         throw new Error(
           data?.error ||
             data?.message ||
-            "Something went wrong creating the checkout session."
+            "Something went wrong creating the payment session."
         );
       }
+
+      // -----------------------------------------------------
+      // Save pending payment information locally
+      //
+      // IMPORTANT:
+      //
+      // This does NOT create a Firestore order.
+      //
+      // It is only useful for keeping track of the Stripe
+      // checkout session on the browser.
+      // -----------------------------------------------------
+
+      localStorage.setItem(
+        "pending_order",
+        JSON.stringify({
+          ...orderData,
+          stripeSessionId:
+            data.sessionId || null,
+        })
+      );
 
       // -----------------------------------------------------
       // Redirect to Stripe
       // -----------------------------------------------------
 
       if (data.url) {
+        console.log(
+          "Checkout - redirecting to Stripe..."
+        );
+
         window.location.href =
           data.url;
 
@@ -370,7 +391,7 @@ export default function CheckoutPage() {
       );
     } catch (error: any) {
       console.error(
-        "Error during checkout:",
+        "Checkout error:",
         error
       );
 
@@ -586,8 +607,7 @@ export default function CheckoutPage() {
 
           <div
             style={{
-              display:
-                "grid",
+              display: "grid",
               gridTemplateColumns:
                 "1fr 1fr 1fr",
               gap: "10px",
