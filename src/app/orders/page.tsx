@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import styles from "./page.orders.module.css";
 import Image from "next/image";
@@ -26,9 +25,9 @@ export default function OrdersPage() {
   const [trackingOrder, setTrackingOrder] =
     useState<string | null>(null);
 
-  // ---------------------------------------------------------
-  // Format Firestore orders
-  // ---------------------------------------------------------
+  // =========================================================
+  // FORMAT ORDERS
+  // =========================================================
 
   const formatOrders = (
     databaseOrders: any[]
@@ -119,9 +118,9 @@ export default function OrdersPage() {
     });
   };
 
-  // ---------------------------------------------------------
-  // Load orders through SERVER API
-  // ---------------------------------------------------------
+  // =========================================================
+  // LOAD ORDERS THROUGH SERVER
+  // =========================================================
 
   const loadOrders = async (
     firebaseUser: any
@@ -144,57 +143,110 @@ export default function OrdersPage() {
         "======================================"
       );
 
+      // -------------------------------------------------------
+      // Make sure user exists
+      // -------------------------------------------------------
+
       if (!firebaseUser) {
         console.error(
           "Orders - no Firebase user."
         );
 
         setOrders([]);
+
+        return;
+      }
+
+      const userId =
+        firebaseUser.uid;
+
+      if (!userId) {
+        console.error(
+          "Orders - Firebase user has no UID."
+        );
+
+        setOrders([]);
+
         return;
       }
 
       // -------------------------------------------------------
-      // Get Firebase ID token
+      // Get Firebase authentication token
       // -------------------------------------------------------
-
-      const token =
-        await firebaseUser.getIdToken();
 
       console.log(
-        "Orders - Firebase ID token obtained."
+        "Orders - getting Firebase ID token..."
+      );
+
+      const token =
+        await firebaseUser.getIdToken(
+          true
+        );
+
+      if (!token) {
+        console.error(
+          "Orders - Firebase ID token was not returned."
+        );
+
+        setOrders([]);
+
+        return;
+      }
+
+      console.log(
+        "Orders - Firebase ID token received."
       );
 
       // -------------------------------------------------------
-      // Call server-side orders API
+      // Call server-side Orders API
       // -------------------------------------------------------
 
-      const response = await fetch(
-        "/api/orders/get",
-        {
-          method: "GET",
-
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-
-          cache: "no-store",
-        }
+      console.log(
+        "Orders - calling /api/orders/get..."
       );
 
-      const text =
+      const response =
+        await fetch(
+          "/api/orders/get",
+          {
+            method: "GET",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            cache: "no-store",
+          }
+        );
+
+      console.log(
+        "Orders API status:",
+        response.status
+      );
+
+      // -------------------------------------------------------
+      // Read response safely
+      // -------------------------------------------------------
+
+      const responseText =
         await response.text();
 
       let data: any = {};
 
       try {
-        data = text
-          ? JSON.parse(text)
+        data = responseText
+          ? JSON.parse(
+              responseText
+            )
           : {};
-      } catch {
+      } catch (error) {
         console.error(
           "Orders - server returned invalid JSON:",
-          text
+          responseText
         );
+
+        setOrders([]);
 
         return;
       }
@@ -204,13 +256,19 @@ export default function OrdersPage() {
         data
       );
 
+      // -------------------------------------------------------
+      // Handle API error
+      // -------------------------------------------------------
+
       if (!response.ok) {
         console.error(
-          "Orders API error:",
+          "Orders API returned error:",
+          response.status,
           data?.error
         );
 
         setOrders([]);
+
         return;
       }
 
@@ -221,8 +279,13 @@ export default function OrdersPage() {
         );
 
         setOrders([]);
+
         return;
       }
+
+      // -------------------------------------------------------
+      // Get orders from API
+      // -------------------------------------------------------
 
       const databaseOrders =
         Array.isArray(data.orders)
@@ -230,8 +293,31 @@ export default function OrdersPage() {
           : [];
 
       console.log(
-        "Orders received:",
+        "Orders received from server:",
         databaseOrders.length
+      );
+
+      // -------------------------------------------------------
+      // Log each order for debugging
+      // -------------------------------------------------------
+
+      databaseOrders.forEach(
+        (order: any) => {
+          console.log(
+            "Firestore order:",
+            {
+              id: order.id,
+              user_id:
+                order.user_id,
+              paymentStatus:
+                order.paymentStatus,
+              status:
+                order.status,
+              createdAt:
+                order.createdAt,
+            }
+          );
+        }
       );
 
       // -------------------------------------------------------
@@ -243,7 +329,8 @@ export default function OrdersPage() {
           (order: any) => {
             const paymentStatus =
               String(
-                order.paymentStatus || ""
+                order.paymentStatus ||
+                  ""
               )
                 .trim()
                 .toLowerCase();
@@ -265,20 +352,22 @@ export default function OrdersPage() {
 
       paidOrders.sort(
         (a: any, b: any) => {
-          const dateA = new Date(
-            a.createdAt || 0
-          ).getTime();
+          const dateA =
+            new Date(
+              a.createdAt || 0
+            ).getTime();
 
-          const dateB = new Date(
-            b.createdAt || 0
-          ).getTime();
+          const dateB =
+            new Date(
+              b.createdAt || 0
+            ).getTime();
 
           return dateB - dateA;
         }
       );
 
       // -------------------------------------------------------
-      // Format orders
+      // Format orders for display
       // -------------------------------------------------------
 
       const formattedOrders =
@@ -317,9 +406,9 @@ export default function OrdersPage() {
     }
   };
 
-  // ---------------------------------------------------------
-  // Watch Firebase authentication
-  // ---------------------------------------------------------
+  // =========================================================
+  // WATCH FIREBASE AUTHENTICATION
+  // =========================================================
 
   useEffect(() => {
     console.log(
@@ -331,16 +420,25 @@ export default function OrdersPage() {
         auth,
         async (firebaseUser) => {
           try {
+            // -------------------------------------------------
+            // No user
+            // -------------------------------------------------
+
             if (!firebaseUser) {
               console.warn(
                 "Orders - no Firebase user is signed in."
               );
 
               setOrders([]);
+
               setLoading(false);
 
               return;
             }
+
+            // -------------------------------------------------
+            // User exists
+            // -------------------------------------------------
 
             console.log(
               "======================================"
@@ -364,6 +462,10 @@ export default function OrdersPage() {
               "======================================"
             );
 
+            // -------------------------------------------------
+            // Load through server
+            // -------------------------------------------------
+
             await loadOrders(
               firebaseUser
             );
@@ -385,9 +487,9 @@ export default function OrdersPage() {
     };
   }, []);
 
-  // ---------------------------------------------------------
-  // Track / refresh order
-  // ---------------------------------------------------------
+  // =========================================================
+  // TRACK ORDER
+  // =========================================================
 
   const trackOrder = async (
     orderId: string
@@ -408,6 +510,11 @@ export default function OrdersPage() {
         return;
       }
 
+      console.log(
+        "Refreshing order:",
+        orderId
+      );
+
       await loadOrders(
         firebaseUser
       );
@@ -421,9 +528,9 @@ export default function OrdersPage() {
     }
   };
 
-  // ---------------------------------------------------------
-  // Cancel order
-  // ---------------------------------------------------------
+  // =========================================================
+  // CANCEL ORDER
+  // =========================================================
 
   const handleCancelOrder =
     async (
@@ -431,7 +538,9 @@ export default function OrdersPage() {
     ) => {
       try {
         const firestoreId =
-          orderId.startsWith("ORD-")
+          orderId.startsWith(
+            "ORD-"
+          )
             ? orderId.substring(4)
             : orderId;
 
@@ -446,8 +555,18 @@ export default function OrdersPage() {
           return;
         }
 
+        // -----------------------------------------------------
+        // Get Firebase token
+        // -----------------------------------------------------
+
         const token =
-          await firebaseUser.getIdToken();
+          await firebaseUser.getIdToken(
+            true
+          );
+
+        // -----------------------------------------------------
+        // Call server delete API
+        // -----------------------------------------------------
 
         const response =
           await fetch(
@@ -487,6 +606,11 @@ export default function OrdersPage() {
           return;
         }
 
+        console.log(
+          "Delete order response:",
+          data
+        );
+
         if (data.success) {
           setOrders(
             (previousOrders) =>
@@ -510,9 +634,9 @@ export default function OrdersPage() {
       }
     };
 
-  // ---------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------
+  // =========================================================
+  // PAGE
+  // =========================================================
 
   return (
     <div
@@ -528,6 +652,10 @@ export default function OrdersPage() {
         Your Orders
       </h1>
 
+      {/* =====================================================
+          LOADING
+      ===================================================== */}
+
       {loading ? (
         <div
           className={
@@ -539,6 +667,10 @@ export default function OrdersPage() {
           </p>
         </div>
       ) : orders.length === 0 ? (
+        /* ===================================================
+           NO ORDERS
+        =================================================== */
+
         <div
           className={
             styles.emptyState
@@ -559,6 +691,10 @@ export default function OrdersPage() {
           </Link>
         </div>
       ) : (
+        /* ===================================================
+           ORDERS
+        =================================================== */
+
         <div
           className={
             styles.ordersList
@@ -572,6 +708,10 @@ export default function OrdersPage() {
                   styles.orderCard
                 }
               >
+                {/* ==========================================
+                    LEFT SIDE
+                ========================================== */}
+
                 <div
                   className={
                     styles.orderLeft
@@ -614,6 +754,10 @@ export default function OrdersPage() {
                     </span>
                   </div>
                 </div>
+
+                {/* ==========================================
+                    RIGHT SIDE
+                ========================================== */}
 
                 <div
                   className={
@@ -669,6 +813,10 @@ export default function OrdersPage() {
                       }
                     </span>
                   </div>
+
+                  {/* ========================================
+                      BUTTONS
+                  ======================================== */}
 
                   <div
                     className={
