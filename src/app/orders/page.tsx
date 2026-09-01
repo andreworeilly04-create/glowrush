@@ -1,5 +1,5 @@
 "use client";
-
+import Image from 'next/image';
 import { useEffect, useState } from "react";
 import styles from "./page.orders.module.css";
 import Link from "next/link";
@@ -1031,7 +1031,7 @@ export default function OrdersPage() {
                   }
                 >
                   {order.image ? (
-                    <img
+                    <Image
                       src={
                         order.image
                       }
