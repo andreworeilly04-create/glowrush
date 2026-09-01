@@ -1,5 +1,4 @@
 "use client";
-
 import { use, useEffect, useState } from "react";
 import { useCart } from "@/context/context";
 import { useRouter } from "next/navigation";
@@ -7,7 +6,6 @@ import Link from "next/link";
 import styles from "./page.glowstick.module.css";
 import productsData from "@/data/glowsticks";
 import Image from "next/image";
-
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/db";
 

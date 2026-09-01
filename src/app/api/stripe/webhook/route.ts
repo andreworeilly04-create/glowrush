@@ -290,7 +290,8 @@ export async function POST(req: Request) {
         success: true,
         received: true,
         alreadyExists: true,
-        orderId: existingOrder.id,
+        orderId:
+          existingOrder.id,
       });
     }
 
@@ -333,12 +334,7 @@ export async function POST(req: Request) {
     }
 
     // =========================================================
-    // 14. CONVERT ONLY REAL PRODUCTS
-    //
-    // IMPORTANT:
-    //
-    // Shipping and Estimated Tax are Stripe line items too.
-    // We DO NOT want those appearing as products.
+    // 14. CONVERT REAL PRODUCTS
     // =========================================================
 
     const orderItems: any[] = [];
@@ -350,7 +346,7 @@ export async function POST(req: Request) {
         lineItem.price?.product;
 
       // -------------------------------------------------------
-      // Get product name
+      // DEFAULT VALUES
       // -------------------------------------------------------
 
       let productName =
@@ -362,9 +358,12 @@ export async function POST(req: Request) {
       let image =
         "";
 
+      // -------------------------------------------------------
+      // GET STRIPE PRODUCT INFORMATION
+      // -------------------------------------------------------
+
       if (
-        typeof product ===
-          "object" &&
+        typeof product === "object" &&
         product !== null &&
         !("deleted" in product)
       ) {
@@ -377,7 +376,7 @@ export async function POST(req: Request) {
           "";
 
         // -----------------------------------------------------
-        // Get Stripe product image
+        // GET PRODUCT IMAGE FROM STRIPE
         // -----------------------------------------------------
 
         if (
@@ -388,13 +387,21 @@ export async function POST(req: Request) {
         ) {
           image =
             product.images[0];
+
+          console.log(
+            "✅ IMAGE FOUND IN STRIPE PRODUCT:",
+            image
+          );
+        } else {
+          console.warn(
+            "⚠️ NO IMAGE FOUND IN STRIPE PRODUCT:",
+            productName
+          );
         }
       }
 
       // -------------------------------------------------------
-      // IMPORTANT:
-      //
-      // Ignore Stripe shipping and tax line items.
+      // IGNORE SHIPPING
       // -------------------------------------------------------
 
       const normalizedName =
@@ -417,7 +424,7 @@ export async function POST(req: Request) {
       }
 
       // -------------------------------------------------------
-      // Get product price
+      // GET PRODUCT PRICE
       // -------------------------------------------------------
 
       const unitAmount =
@@ -425,33 +432,63 @@ export async function POST(req: Request) {
           ?.unit_amount || 0;
 
       // -------------------------------------------------------
-      // Get quantity
+      // GET QUANTITY
       // -------------------------------------------------------
 
       const quantity =
         lineItem.quantity || 1;
 
       // -------------------------------------------------------
-      // Add actual product
+      // CREATE ORDER ITEM
       // -------------------------------------------------------
 
       const orderItem = {
         name:
           productName,
 
-        description,
+        description:
+          description,
 
         price:
           unitAmount / 100,
 
-        quantity,
+        quantity:
+          quantity,
 
-        image,
+        image:
+          image,
       };
 
       console.log(
-        "Adding product to order:",
-        orderItem
+        "======================================"
+      );
+
+      console.log(
+        "ADDING PRODUCT TO ORDER"
+      );
+
+      console.log(
+        "Name:",
+        productName
+      );
+
+      console.log(
+        "Quantity:",
+        quantity
+      );
+
+      console.log(
+        "Price:",
+        unitAmount / 100
+      );
+
+      console.log(
+        "Image:",
+        image
+      );
+
+      console.log(
+        "======================================"
       );
 
       orderItems.push(
@@ -485,7 +522,10 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "ACTUAL PRODUCTS IN ORDER:",
+      "ACTUAL PRODUCTS IN ORDER:"
+    );
+
+    console.log(
       orderItems
     );
 
@@ -654,6 +694,13 @@ export async function POST(req: Request) {
     );
 
     console.log(
+      "Images:",
+      orderItems.map(
+        (item) => item.image
+      )
+    );
+
+    console.log(
       "Order data:",
       orderData
     );
@@ -699,6 +746,13 @@ export async function POST(req: Request) {
     );
 
     console.log(
+      "Saved Images:",
+      orderItems.map(
+        (item) => item.image
+      )
+    );
+
+    console.log(
       "======================================"
     );
 
@@ -731,6 +785,11 @@ export async function POST(req: Request) {
     console.error(
       "Error message:",
       error?.message
+    );
+
+    console.error(
+      "Error stack:",
+      error?.stack
     );
 
     console.error(

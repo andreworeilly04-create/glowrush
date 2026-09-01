@@ -107,7 +107,22 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // 5. Build Stripe line items
+    // 5. Website URL
+    //
+    // KEEPING YOUR EXISTING URL SETUP
+    // ---------------------------------------------------------
+
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "https://glowrush.vercel.app";
+
+    console.log(
+      "Base URL:",
+      baseUrl
+    );
+
+    // ---------------------------------------------------------
+    // 6. Build Stripe line items
     // ---------------------------------------------------------
 
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
@@ -142,23 +157,63 @@ export async function POST(req: Request) {
 
       // -------------------------------------------------------
       // Product image
+      //
+      // Uses item.image dynamically.
+      // Nothing is hardcoded here.
       // -------------------------------------------------------
 
-      const productImage =
+      let imageUrl:
+        | string
+        | undefined;
+
+      if (
         typeof item?.image === "string" &&
         item.image.trim() !== ""
-          ? item.image.trim()
-          : "";
+      ) {
+        const imagePath =
+          item.image.trim();
 
-      console.log(
-        "Product:",
-        item?.name
-      );
+        try {
+          imageUrl =
+            new URL(
+              imagePath.startsWith("/")
+                ? imagePath
+                : `/${imagePath}`,
+              baseUrl
+            ).toString();
 
-      console.log(
-        "Product image:",
-        productImage || "NO IMAGE"
-      );
+          console.log(
+            "Product:",
+            item?.name
+          );
+
+          console.log(
+            "Original image:",
+            imagePath
+          );
+
+          console.log(
+            "Stripe image URL:",
+            imageUrl
+          );
+        } catch (imageError) {
+          console.error(
+            "Could not create image URL:",
+            imagePath
+          );
+
+          console.error(
+            imageError
+          );
+
+          imageUrl = undefined;
+        }
+      } else {
+        console.warn(
+          "Product has no image:",
+          item?.name
+        );
+      }
 
       // -------------------------------------------------------
       // Stripe product data
@@ -179,23 +234,30 @@ export async function POST(req: Request) {
         };
 
       // -------------------------------------------------------
-      // Add image ONLY when one exists
+      // Add product image to Stripe
       // -------------------------------------------------------
 
-      if (productImage) {
+      if (imageUrl) {
         productData.images = [
-          productImage,
+          imageUrl,
         ];
       }
+
+      // -------------------------------------------------------
+      // Add product to Stripe
+      // -------------------------------------------------------
 
       lineItems.push({
         price_data: {
           currency: "usd",
 
-          product_data: productData,
+          product_data:
+            productData,
 
           unit_amount:
-            Math.round(itemPrice * 100),
+            Math.round(
+              itemPrice * 100
+            ),
         },
 
         quantity,
@@ -203,7 +265,7 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // 6. Add shipping
+    // 7. Add shipping
     // ---------------------------------------------------------
 
     const shippingAmount =
@@ -229,7 +291,7 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // 7. Add tax
+    // 8. Add tax
     // ---------------------------------------------------------
 
     const taxAmount =
@@ -255,7 +317,7 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // 8. Prepare Stripe metadata
+    // 9. Prepare Stripe metadata
     // ---------------------------------------------------------
 
     const metadata: Stripe.MetadataParam = {
@@ -303,14 +365,16 @@ export async function POST(req: Request) {
     };
 
     // ---------------------------------------------------------
-    // 9. Log metadata
+    // 10. Log metadata
     // ---------------------------------------------------------
 
     console.log(
       "Stripe metadata being sent:"
     );
 
-    console.log(metadata);
+    console.log(
+      metadata
+    );
 
     console.log(
       "Verified user_id:",
@@ -318,24 +382,15 @@ export async function POST(req: Request) {
     );
 
     // ---------------------------------------------------------
-    // 10. Website URL
+    // 11. Log final line items
     // ---------------------------------------------------------
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      "https://glowrush.vercel.app";
-
     console.log(
-      "Base URL:",
-      baseUrl
+      "======================================"
     );
 
-    // ---------------------------------------------------------
-    // 11. Log final Stripe line items
-    // ---------------------------------------------------------
-
     console.log(
-      "Stripe line items:"
+      "STRIPE LINE ITEMS"
     );
 
     console.log(
@@ -344,6 +399,10 @@ export async function POST(req: Request) {
         null,
         2
       )
+    );
+
+    console.log(
+      "======================================"
     );
 
     // ---------------------------------------------------------
@@ -363,7 +422,8 @@ export async function POST(req: Request) {
 
           mode: "payment",
 
-          line_items: lineItems,
+          line_items:
+            lineItems,
 
           customer_email:
             typeof customerEmail ===
@@ -374,8 +434,16 @@ export async function POST(req: Request) {
 
           metadata,
 
+          // ---------------------------------------------------
+          // KEEPING YOUR ORIGINAL SUCCESS URL
+          // ---------------------------------------------------
+
           success_url:
             `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
+
+          // ---------------------------------------------------
+          // KEEPING YOUR ORIGINAL CANCEL URL
+          // ---------------------------------------------------
 
           cancel_url:
             `${baseUrl}/checkout?canceled=true`,
@@ -444,15 +512,21 @@ export async function POST(req: Request) {
 
         url: session.url,
 
-        sessionId: session.id,
+        sessionId:
+          session.id,
 
-        user_id: String(user_id),
+        user_id:
+          String(user_id),
       },
       {
         status: 200,
       }
     );
   } catch (error: any) {
+    // ---------------------------------------------------------
+    // Stripe checkout error
+    // ---------------------------------------------------------
+
     console.error(
       "======================================"
     );
