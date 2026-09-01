@@ -1,15 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-
-import { db } from "@/lib/db";
-
-import {
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 
 const stripe = new Stripe(
   process.env.STRIPE_SECRET_KEY!
@@ -17,49 +8,43 @@ const stripe = new Stripe(
 
 export async function POST(req: Request) {
   try {
-    // =========================================================
-    // 1. READ RAW STRIPE WEBHOOK BODY
-    // =========================================================
+    // ---------------------------------------------------------
+    // 1. Get RAW Stripe webhook body
+    // ---------------------------------------------------------
 
     const body = await req.text();
 
-    console.log("======================================");
-    console.log("STRIPE WEBHOOK REQUEST RECEIVED");
-    console.log("======================================");
+    // ---------------------------------------------------------
+    // 2. Get Stripe signature
+    // ---------------------------------------------------------
 
-    // =========================================================
-    // 2. GET STRIPE SIGNATURE
-    // =========================================================
-
-    const signature = req.headers.get(
-      "stripe-signature"
-    );
+    const signature =
+      req.headers.get("stripe-signature");
 
     if (!signature) {
       console.error(
-        "WEBHOOK ERROR: Missing stripe-signature header."
+        "Webhook error: Missing stripe-signature header."
       );
 
       return NextResponse.json(
         {
           success: false,
-          error:
-            "Missing stripe-signature header.",
+          error: "Missing Stripe signature.",
         },
         { status: 400 }
       );
     }
 
-    // =========================================================
-    // 3. GET WEBHOOK SECRET
-    // =========================================================
+    // ---------------------------------------------------------
+    // 3. Get webhook secret
+    // ---------------------------------------------------------
 
     const webhookSecret =
       process.env.STRIPE_WEBHOOK_KEY;
 
     if (!webhookSecret) {
       console.error(
-        "WEBHOOK ERROR: STRIPE_WEBHOOK_KEY is missing."
+        "Webhook error: STRIPE_WEBHOOK_KEY is not configured."
       );
 
       return NextResponse.json(
@@ -72,9 +57,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // =========================================================
-    // 4. VERIFY STRIPE WEBHOOK
-    // =========================================================
+    // ---------------------------------------------------------
+    // 4. Verify Stripe webhook
+    // ---------------------------------------------------------
 
     let event: Stripe.Event;
 
@@ -87,10 +72,7 @@ export async function POST(req: Request) {
         );
     } catch (error: any) {
       console.error(
-        "WEBHOOK ERROR: Stripe signature verification failed."
-      );
-
-      console.error(
+        "Webhook signature verification failed:",
         error?.message
       );
 
@@ -99,26 +81,36 @@ export async function POST(req: Request) {
           success: false,
           error:
             "Invalid Stripe webhook signature.",
-          details:
-            error?.message || "",
         },
         { status: 400 }
       );
     }
 
     console.log(
-      "Stripe event type:",
+      "======================================"
+    );
+
+    console.log(
+      "STRIPE WEBHOOK RECEIVED"
+    );
+
+    console.log(
+      "Event type:",
       event.type
     );
 
     console.log(
-      "Stripe event ID:",
+      "Event ID:",
       event.id
     );
 
-    // =========================================================
-    // 5. ONLY PROCESS checkout.session.completed
-    // =========================================================
+    console.log(
+      "======================================"
+    );
+
+    // ---------------------------------------------------------
+    // 5. Only process checkout.session.completed
+    // ---------------------------------------------------------
 
     if (
       event.type !==
@@ -133,37 +125,32 @@ export async function POST(req: Request) {
         success: true,
         received: true,
         ignored: true,
-        eventType: event.type,
       });
     }
 
-    // =========================================================
-    // 6. GET CHECKOUT SESSION
-    // =========================================================
+    // ---------------------------------------------------------
+    // 6. Get Checkout Session
+    // ---------------------------------------------------------
 
     const session =
       event.data.object as Stripe.Checkout.Session;
 
     console.log(
-      "Stripe Checkout Session ID:",
+      "Stripe Checkout Session:",
       session.id
     );
 
-    // =========================================================
-    // 7. VERIFY PAYMENT STATUS
-    // =========================================================
-
-    console.log(
-      "Stripe payment status:",
-      session.payment_status
-    );
+    // ---------------------------------------------------------
+    // 7. Make sure payment was successful
+    // ---------------------------------------------------------
 
     if (
       session.payment_status !==
       "paid"
     ) {
-      console.error(
-        "Webhook stopped: payment was not paid."
+      console.log(
+        "Payment is not paid.",
+        session.payment_status
       );
 
       return NextResponse.json({
@@ -179,24 +166,25 @@ export async function POST(req: Request) {
       "PAYMENT CONFIRMED AS PAID"
     );
 
-    // =========================================================
-    // 8. READ STRIPE METADATA
-    // =========================================================
+    // ---------------------------------------------------------
+    // 8. Read Stripe metadata
+    // ---------------------------------------------------------
 
     const metadata =
       session.metadata || {};
 
-    console.log(
-      "Stripe metadata received:",
-      metadata
-    );
-
     const userId =
       metadata.user_id;
 
-    // =========================================================
-    // 9. VERIFY USER ID
-    // =========================================================
+    console.log(
+      "Stripe metadata:",
+      metadata
+    );
+
+    console.log(
+      "User ID from Stripe:",
+      userId
+    );
 
     if (
       !userId ||
@@ -204,12 +192,7 @@ export async function POST(req: Request) {
       userId.trim() === ""
     ) {
       console.error(
-        "WEBHOOK ERROR: Missing user_id in Stripe metadata."
-      );
-
-      console.error(
-        "Metadata received:",
-        metadata
+        "Webhook error: Missing user_id in Stripe metadata."
       );
 
       return NextResponse.json(
@@ -217,86 +200,41 @@ export async function POST(req: Request) {
           success: false,
           error:
             "Missing user_id in Stripe metadata.",
-          metadata,
         },
         { status: 400 }
       );
     }
 
-    console.log(
-      "Firebase user ID received from Stripe:",
-      userId
-    );
-
-    // =========================================================
-    // 10. FIRESTORE ORDERS COLLECTION
-    // =========================================================
+    // ---------------------------------------------------------
+    // 9. Get Firestore orders collection
+    //
+    // IMPORTANT:
+    // This is Firebase Admin SDK.
+    // Do NOT use collection() from firebase/firestore.
+    // ---------------------------------------------------------
 
     const ordersRef =
-      collection(
-        db,
-        "orders"
-      );
+      adminDb.collection("orders");
 
-    console.log(
-      "Firestore orders collection initialized."
-    );
+    // ---------------------------------------------------------
+    // 10. Prevent duplicate orders
+    // ---------------------------------------------------------
 
-    // =========================================================
-    // 11. CHECK FOR DUPLICATE ORDER
-    // =========================================================
-
-    console.log(
-      "Checking for existing order..."
-    );
-
-    const existingOrderQuery =
-      query(
-        ordersRef,
-        where(
+    const existingOrdersSnapshot =
+      await ordersRef
+        .where(
           "stripeSessionId",
           "==",
           session.id
         )
-      );
-
-    let existingOrders;
-
-    try {
-      existingOrders =
-        await getDocs(
-          existingOrderQuery
-        );
-    } catch (error: any) {
-      console.error(
-        "FIRESTORE ERROR: Could not check existing orders."
-      );
-
-      console.error(
-        error
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Firestore could not query existing orders.",
-          details:
-            error?.message || "",
-        },
-        { status: 500 }
-      );
-    }
+        .limit(1)
+        .get();
 
     if (
-      !existingOrders.empty
+      !existingOrdersSnapshot.empty
     ) {
       console.log(
-        "Order already exists."
-      );
-
-      console.log(
-        "Stripe Session:",
+        "Order already exists for Stripe session:",
         session.id
       );
 
@@ -307,47 +245,20 @@ export async function POST(req: Request) {
       });
     }
 
-    // =========================================================
-    // 12. GET STRIPE LINE ITEMS
-    // =========================================================
+    // ---------------------------------------------------------
+    // 11. Get purchased items directly from Stripe
+    // ---------------------------------------------------------
 
-    console.log(
-      "Retrieving Stripe line items..."
-    );
-
-    let stripeLineItems;
-
-    try {
-      stripeLineItems =
-        await stripe.checkout.sessions.listLineItems(
-          session.id,
-          {
-            limit: 100,
-            expand: [
-              "data.price.product",
-            ],
-          }
-        );
-    } catch (error: any) {
-      console.error(
-        "STRIPE ERROR: Could not retrieve line items."
-      );
-
-      console.error(
-        error
-      );
-
-      return NextResponse.json(
+    const stripeLineItems =
+      await stripe.checkout.sessions.listLineItems(
+        session.id,
         {
-          success: false,
-          error:
-            "Could not retrieve Stripe line items.",
-          details:
-            error?.message || "",
-        },
-        { status: 500 }
+          limit: 100,
+          expand: [
+            "data.price.product",
+          ],
+        }
       );
-    }
 
     console.log(
       "Stripe line items found:",
@@ -359,7 +270,7 @@ export async function POST(req: Request) {
       0
     ) {
       console.error(
-        "WEBHOOK ERROR: Stripe returned zero line items."
+        "Webhook error: No Stripe line items found."
       );
 
       return NextResponse.json(
@@ -372,9 +283,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // =========================================================
-    // 13. CONVERT STRIPE ITEMS INTO FIRESTORE ITEMS
-    // =========================================================
+    // ---------------------------------------------------------
+    // 12. Convert Stripe items to Firestore items
+    // ---------------------------------------------------------
 
     const orderItems =
       stripeLineItems.data.map(
@@ -387,8 +298,9 @@ export async function POST(req: Request) {
           let productName =
             "Glow Stick";
 
-          let description =
-            "";
+          let description = "";
+
+          let image = "";
 
           if (
             typeof product ===
@@ -403,6 +315,16 @@ export async function POST(req: Request) {
             description =
               product.description ||
               "";
+
+            if (
+              Array.isArray(
+                product.images
+              ) &&
+              product.images.length > 0
+            ) {
+              image =
+                product.images[0];
+            }
           }
 
           const unitAmount =
@@ -413,8 +335,7 @@ export async function POST(req: Request) {
             lineItem.quantity || 1;
 
           return {
-            name:
-              productName,
+            name: productName,
 
             description,
 
@@ -423,54 +344,30 @@ export async function POST(req: Request) {
 
             quantity,
 
-            image:
-              "",
+            image,
           };
         }
       );
 
-    console.log(
-      "Converted order items:",
-      orderItems
-    );
-
-    // =========================================================
-    // 14. GET ORDER TOTALS
-    // =========================================================
+    // ---------------------------------------------------------
+    // 13. Get totals from metadata
+    // ---------------------------------------------------------
 
     const price =
-      Number(
-        metadata.price
-      ) || 0;
+      Number(metadata.price) || 0;
 
     const shipping =
-      Number(
-        metadata.shipping
-      ) || 0;
+      Number(metadata.shipping) || 0;
 
     const tax =
-      Number(
-        metadata.tax
-      ) || 0;
+      Number(metadata.tax) || 0;
 
     const total =
-      Number(
-        metadata.total
-      ) || 0;
+      Number(metadata.total) || 0;
 
-    console.log(
-      "Order totals:",
-      {
-        price,
-        shipping,
-        tax,
-        total,
-      }
-    );
-
-    // =========================================================
-    // 15. CUSTOMER INFORMATION
-    // =========================================================
+    // ---------------------------------------------------------
+    // 14. Customer information
+    // ---------------------------------------------------------
 
     const customerEmail =
       metadata.customerEmail ||
@@ -494,9 +391,9 @@ export async function POST(req: Request) {
       metadata.shippingAddress ||
       "";
 
-    // =========================================================
-    // 16. PAYMENT INTENT
-    // =========================================================
+    // ---------------------------------------------------------
+    // 15. Payment Intent ID
+    // ---------------------------------------------------------
 
     const paymentIntentId =
       typeof session.payment_intent ===
@@ -505,19 +402,17 @@ export async function POST(req: Request) {
         : session.payment_intent?.id ||
           null;
 
-    // =========================================================
-    // 17. CREATE ORDER DATA
-    // =========================================================
+    // ---------------------------------------------------------
+    // 16. Create Firestore order
+    // ---------------------------------------------------------
 
     const now =
       new Date().toISOString();
 
     const orderData = {
-      user_id:
-        String(userId),
+      user_id: String(userId),
 
-      items:
-        orderItems,
+      items: orderItems,
 
       price,
 
@@ -550,11 +445,9 @@ export async function POST(req: Request) {
       stripePaymentIntentId:
         paymentIntentId,
 
-      createdAt:
-        now,
+      createdAt: now,
 
-      paidAt:
-        now,
+      paidAt: now,
     };
 
     console.log(
@@ -562,7 +455,7 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "ATTEMPTING FIRESTORE ORDER CREATION"
+      "CREATING FIRESTORE ORDER"
     );
 
     console.log(
@@ -584,65 +477,18 @@ export async function POST(req: Request) {
       "======================================"
     );
 
-    // =========================================================
-    // 18. SAVE ORDER TO FIRESTORE
-    // =========================================================
+    // ---------------------------------------------------------
+    // 17. Save order using Firebase Admin SDK
+    // ---------------------------------------------------------
 
-    let docRef;
-
-    try {
-      docRef =
-        await addDoc(
-          ordersRef,
-          orderData
-        );
-    } catch (error: any) {
-      console.error(
-        "======================================"
+    const docRef =
+      await ordersRef.add(
+        orderData
       );
 
-      console.error(
-        "FIRESTORE ORDER CREATION FAILED"
-      );
-
-      console.error(
-        "Firestore error:",
-        error
-      );
-
-      console.error(
-        "Firestore error message:",
-        error?.message
-      );
-
-      console.error(
-        "Firestore error code:",
-        error?.code
-      );
-
-      console.error(
-        "======================================"
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Failed to save order to Firestore.",
-          details:
-            error?.message || "",
-          code:
-            error?.code || "",
-        },
-        {
-          status: 500,
-        }
-      );
-    }
-
-    // =========================================================
-    // 19. SUCCESS
-    // =========================================================
+    // ---------------------------------------------------------
+    // 18. Success
+    // ---------------------------------------------------------
 
     console.log(
       "======================================"
@@ -663,7 +509,7 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "Firebase User ID:",
+      "User ID:",
       userId
     );
 
@@ -673,23 +519,21 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      received: true,
-      orderId:
-        docRef.id,
-    });
 
+      received: true,
+
+      orderId: docRef.id,
+    });
   } catch (error: any) {
     console.error(
       "======================================"
     );
 
     console.error(
-      "STRIPE WEBHOOK UNHANDLED ERROR"
+      "STRIPE WEBHOOK ERROR"
     );
 
-    console.error(
-      error
-    );
+    console.error(error);
 
     console.error(
       "======================================"
@@ -698,11 +542,10 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: false,
+
         error:
           error?.message ||
           "Webhook processing failed.",
-        code:
-          error?.code || "",
       },
       {
         status: 500,
