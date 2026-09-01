@@ -140,22 +140,82 @@ export async function POST(req: Request) {
         );
       }
 
+      // -------------------------------------------------------
+      // Get product image from cart item
+      // -------------------------------------------------------
+
+      let productImage: string | undefined;
+
+      if (
+        typeof item?.image === "string" &&
+        item.image.trim() !== ""
+      ) {
+        productImage =
+          item.image.trim();
+      } else if (
+        typeof item?.image === "object" &&
+        item.image !== null &&
+        typeof item.image.src === "string" &&
+        item.image.src.trim() !== ""
+      ) {
+        productImage =
+          item.image.src.trim();
+      }
+
+      console.log(
+        "Product being sent to Stripe:",
+        {
+          name: item?.name,
+          price: itemPrice,
+          quantity,
+          image: productImage,
+        }
+      );
+
+      // -------------------------------------------------------
+      // Build product data
+      // -------------------------------------------------------
+
+      const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
+        {
+          name:
+            typeof item?.name === "string" &&
+            item.name.trim() !== ""
+              ? item.name
+              : "Glow Stick",
+
+          description:
+            typeof item?.description === "string"
+              ? item.description
+              : "",
+        };
+
+      // -------------------------------------------------------
+      // Add image ONLY when a valid image exists
+      // -------------------------------------------------------
+
+      if (productImage) {
+        productData.images = [
+          productImage,
+        ];
+
+        console.log(
+          "✅ Stripe product image added:",
+          productImage
+        );
+      } else {
+        console.warn(
+          "⚠️ No product image found for:",
+          item?.name
+        );
+      }
+
       lineItems.push({
         price_data: {
           currency: "usd",
 
-          product_data: {
-            name:
-              typeof item?.name === "string" &&
-              item.name.trim() !== ""
-                ? item.name
-                : "Glow Stick",
-
-            description:
-              typeof item?.description === "string"
-                ? item.description
-                : "",
-          },
+          product_data:
+            productData,
 
           unit_amount:
             Math.round(itemPrice * 100),
@@ -310,7 +370,8 @@ export async function POST(req: Request) {
 
           mode: "payment",
 
-          line_items: lineItems,
+          line_items:
+            lineItems,
 
           customer_email:
             typeof customerEmail ===
@@ -391,15 +452,21 @@ export async function POST(req: Request) {
 
         url: session.url,
 
-        sessionId: session.id,
+        sessionId:
+          session.id,
 
-        user_id: String(user_id),
+        user_id:
+          String(user_id),
       },
       {
         status: 200,
       }
     );
   } catch (error: any) {
+    // ---------------------------------------------------------
+    // Stripe checkout error
+    // ---------------------------------------------------------
+
     console.error(
       "======================================"
     );
