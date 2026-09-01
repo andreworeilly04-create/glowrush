@@ -142,65 +142,29 @@ export async function POST(req: Request) {
 
       // -------------------------------------------------------
       // Product image
-      //
-      // Stripe requires a complete URL:
-      // https://example.com/image.jpg
-      //
-      // If the image is a relative URL such as:
-      // /images/product.jpg
-      //
-      // we DO NOT send it to Stripe because Stripe would
-      // reject the entire checkout request.
       // -------------------------------------------------------
 
-      let productImage:
-        | string
-        | undefined = undefined;
-
-      if (
+      const productImage =
         typeof item?.image === "string" &&
         item.image.trim() !== ""
-      ) {
-        const imageUrl =
-          item.image.trim();
+          ? item.image.trim()
+          : "";
 
-        try {
-          const parsedImageUrl =
-            new URL(imageUrl);
+      console.log(
+        "Product:",
+        item?.name
+      );
 
-          if (
-            parsedImageUrl.protocol ===
-              "http:" ||
-            parsedImageUrl.protocol ===
-              "https:"
-          ) {
-            productImage =
-              parsedImageUrl.toString();
-
-            console.log(
-              "Product image URL accepted:",
-              productImage
-            );
-          } else {
-            console.warn(
-              "Product image URL has invalid protocol. Not sending to Stripe:",
-              imageUrl
-            );
-          }
-        } catch {
-          console.warn(
-            "Product image is not a valid absolute URL. Not sending to Stripe:",
-            imageUrl
-          );
-        }
-      }
+      console.log(
+        "Product image:",
+        productImage || "NO IMAGE"
+      );
 
       // -------------------------------------------------------
-      // Product data
+      // Stripe product data
       // -------------------------------------------------------
 
-      const productData:
-        Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
+      const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
         {
           name:
             typeof item?.name === "string" &&
@@ -215,7 +179,7 @@ export async function POST(req: Request) {
         };
 
       // -------------------------------------------------------
-      // Only add images when the URL is actually valid
+      // Add image ONLY when one exists
       // -------------------------------------------------------
 
       if (productImage) {
@@ -228,13 +192,10 @@ export async function POST(req: Request) {
         price_data: {
           currency: "usd",
 
-          product_data:
-            productData,
+          product_data: productData,
 
           unit_amount:
-            Math.round(
-              itemPrice * 100
-            ),
+            Math.round(itemPrice * 100),
         },
 
         quantity,
@@ -370,7 +331,23 @@ export async function POST(req: Request) {
     );
 
     // ---------------------------------------------------------
-    // 11. Create Stripe Checkout Session
+    // 11. Log final Stripe line items
+    // ---------------------------------------------------------
+
+    console.log(
+      "Stripe line items:"
+    );
+
+    console.log(
+      JSON.stringify(
+        lineItems,
+        null,
+        2
+      )
+    );
+
+    // ---------------------------------------------------------
+    // 12. Create Stripe Checkout Session
     // ---------------------------------------------------------
 
     console.log(
@@ -386,8 +363,7 @@ export async function POST(req: Request) {
 
           mode: "payment",
 
-          line_items:
-            lineItems,
+          line_items: lineItems,
 
           customer_email:
             typeof customerEmail ===
@@ -398,10 +374,6 @@ export async function POST(req: Request) {
 
           metadata,
 
-          // ---------------------------------------------------
-          // KEEPING YOUR ORIGINAL URL
-          // ---------------------------------------------------
-
           success_url:
             `${baseUrl}/orders?success=true&session_id={CHECKOUT_SESSION_ID}`,
 
@@ -411,7 +383,7 @@ export async function POST(req: Request) {
       );
 
     // ---------------------------------------------------------
-    // 12. Make sure Stripe returned a URL
+    // 13. Make sure Stripe returned a URL
     // ---------------------------------------------------------
 
     if (!session.url) {
@@ -432,7 +404,7 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // 13. Successful session
+    // 14. Successful session
     // ---------------------------------------------------------
 
     console.log(
@@ -463,7 +435,7 @@ export async function POST(req: Request) {
     );
 
     // ---------------------------------------------------------
-    // 14. Return checkout URL
+    // 15. Return checkout URL
     // ---------------------------------------------------------
 
     return NextResponse.json(
@@ -472,11 +444,9 @@ export async function POST(req: Request) {
 
         url: session.url,
 
-        sessionId:
-          session.id,
+        sessionId: session.id,
 
-        user_id:
-          String(user_id),
+        user_id: String(user_id),
       },
       {
         status: 200,
