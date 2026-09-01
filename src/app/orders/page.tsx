@@ -70,10 +70,6 @@ function formatOrders(rawOrders: any[]): Order[] {
       console.error("Error parsing order items:", error);
     }
 
-    /*
-     * Fallback in case an older order does not have
-     * an items array but does have a single product.
-     */
     if (items.length === 0 && order.name) {
       items = [
         {
@@ -180,17 +176,11 @@ export default function OrdersPage() {
         return;
       }
 
-      /*
-       * Only show paid orders.
-       */
       const paidOrders = data.orders.filter(
         (order: any) =>
           String(order.paymentStatus || "").toLowerCase() === "paid"
       );
 
-      /*
-       * Newest orders first.
-       */
       paidOrders.sort((a: any, b: any) => {
         const dateA = a.createdAt
           ? new Date(a.createdAt).getTime()
@@ -247,7 +237,9 @@ export default function OrdersPage() {
       const firebaseUser = auth.currentUser;
 
       if (!firebaseUser) {
-        console.error("Cannot track order because no Firebase user is signed in.");
+        console.error(
+          "Cannot track order because no Firebase user is signed in."
+        );
         return;
       }
 
@@ -350,10 +342,7 @@ export default function OrdersPage() {
         ) : (
           <div className={styles.ordersList}>
             {orders.map((order) => (
-              <div
-                key={order.id}
-                className={styles.orderCard}
-              >
+              <div key={order.id} className={styles.orderCard}>
                 <div className={styles.orderHeader}>
                   <div>
                     <h3 style={{ color: "rgb(219, 255, 148)" }}>
