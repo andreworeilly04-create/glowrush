@@ -72,8 +72,11 @@ export async function POST(req: Request) {
         );
     } catch (error: any) {
       console.error(
-        "Webhook signature verification failed:",
-        error?.message
+        "Webhook signature verification failed:"
+      );
+
+      console.error(
+        error?.message || error
       );
 
       return NextResponse.json(
@@ -141,16 +144,20 @@ export async function POST(req: Request) {
     );
 
     // ---------------------------------------------------------
-    // 7. Make sure payment was successful
+    // 7. Check payment status
     // ---------------------------------------------------------
+
+    console.log(
+      "Stripe payment status:",
+      session.payment_status
+    );
 
     if (
       session.payment_status !==
       "paid"
     ) {
       console.log(
-        "Payment is not paid.",
-        session.payment_status
+        "Payment is not paid."
       );
 
       return NextResponse.json({
@@ -173,18 +180,22 @@ export async function POST(req: Request) {
     const metadata =
       session.metadata || {};
 
-    const userId =
-      metadata.user_id;
-
     console.log(
       "Stripe metadata:",
       metadata
     );
 
+    const userId =
+      metadata.user_id;
+
     console.log(
       "User ID from Stripe:",
       userId
     );
+
+    // ---------------------------------------------------------
+    // 9. Make sure user_id exists
+    // ---------------------------------------------------------
 
     if (
       !userId ||
@@ -206,19 +217,27 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // 9. Get Firestore orders collection
-    //
-    // IMPORTANT:
-    // This is Firebase Admin SDK.
-    // Do NOT use collection() from firebase/firestore.
+    // 10. Get Admin Firestore orders collection
     // ---------------------------------------------------------
+
+    console.log(
+      "Connecting to Firebase Admin Firestore..."
+    );
 
     const ordersRef =
       adminDb.collection("orders");
 
+    console.log(
+      "Firebase Admin Firestore connection ready."
+    );
+
     // ---------------------------------------------------------
-    // 10. Prevent duplicate orders
+    // 11. Prevent duplicate orders
     // ---------------------------------------------------------
+
+    console.log(
+      "Checking for existing order..."
+    );
 
     const existingOrdersSnapshot =
       await ordersRef
@@ -233,21 +252,46 @@ export async function POST(req: Request) {
     if (
       !existingOrdersSnapshot.empty
     ) {
+      const existingOrder =
+        existingOrdersSnapshot.docs[0];
+
       console.log(
-        "Order already exists for Stripe session:",
+        "======================================"
+      );
+
+      console.log(
+        "ORDER ALREADY EXISTS"
+      );
+
+      console.log(
+        "Firestore Order ID:",
+        existingOrder.id
+      );
+
+      console.log(
+        "Stripe Session ID:",
         session.id
+      );
+
+      console.log(
+        "======================================"
       );
 
       return NextResponse.json({
         success: true,
         received: true,
         alreadyExists: true,
+        orderId: existingOrder.id,
       });
     }
 
     // ---------------------------------------------------------
-    // 11. Get purchased items directly from Stripe
+    // 12. Get Stripe line items
     // ---------------------------------------------------------
+
+    console.log(
+      "Retrieving Stripe line items..."
+    );
 
     const stripeLineItems =
       await stripe.checkout.sessions.listLineItems(
@@ -284,7 +328,7 @@ export async function POST(req: Request) {
     }
 
     // ---------------------------------------------------------
-    // 12. Convert Stripe items to Firestore items
+    // 13. Convert Stripe line items
     // ---------------------------------------------------------
 
     const orderItems =
@@ -350,7 +394,7 @@ export async function POST(req: Request) {
       );
 
     // ---------------------------------------------------------
-    // 13. Get totals from metadata
+    // 14. Get totals from metadata
     // ---------------------------------------------------------
 
     const price =
@@ -366,7 +410,7 @@ export async function POST(req: Request) {
       Number(metadata.total) || 0;
 
     // ---------------------------------------------------------
-    // 14. Customer information
+    // 15. Customer information
     // ---------------------------------------------------------
 
     const customerEmail =
@@ -392,7 +436,7 @@ export async function POST(req: Request) {
       "";
 
     // ---------------------------------------------------------
-    // 15. Payment Intent ID
+    // 16. Payment Intent ID
     // ---------------------------------------------------------
 
     const paymentIntentId =
@@ -403,7 +447,7 @@ export async function POST(req: Request) {
           null;
 
     // ---------------------------------------------------------
-    // 16. Create Firestore order
+    // 17. Create paid order
     // ---------------------------------------------------------
 
     const now =
@@ -455,7 +499,7 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "CREATING FIRESTORE ORDER"
+      "CREATING PAID FIRESTORE ORDER"
     );
 
     console.log(
@@ -464,13 +508,23 @@ export async function POST(req: Request) {
     );
 
     console.log(
-      "Stripe Session:",
+      "Stripe Session ID:",
       session.id
     );
 
     console.log(
-      "Order data:",
-      orderData
+      "Payment Intent ID:",
+      paymentIntentId
+    );
+
+    console.log(
+      "Order items:",
+      orderItems
+    );
+
+    console.log(
+      "Total:",
+      total
     );
 
     console.log(
@@ -478,7 +532,7 @@ export async function POST(req: Request) {
     );
 
     // ---------------------------------------------------------
-    // 17. Save order using Firebase Admin SDK
+    // 18. Save order using Firebase Admin
     // ---------------------------------------------------------
 
     const docRef =
@@ -487,7 +541,7 @@ export async function POST(req: Request) {
       );
 
     // ---------------------------------------------------------
-    // 18. Success
+    // 19. Success
     // ---------------------------------------------------------
 
     console.log(
@@ -519,9 +573,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-
       received: true,
-
       orderId: docRef.id,
     });
   } catch (error: any) {
@@ -533,7 +585,15 @@ export async function POST(req: Request) {
       "STRIPE WEBHOOK ERROR"
     );
 
-    console.error(error);
+    console.error(
+      "Error message:",
+      error?.message
+    );
+
+    console.error(
+      "Full error:",
+      error
+    );
 
     console.error(
       "======================================"
@@ -542,7 +602,6 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: false,
-
         error:
           error?.message ||
           "Webhook processing failed.",
@@ -553,4 +612,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { useCart } from "@/context/context";
 import styles from "./page.checkout.module.css";

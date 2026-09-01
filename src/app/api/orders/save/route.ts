@@ -1,19 +1,11 @@
-
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
 
-import {
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 
 export async function POST(request: Request) {
   try {
     // ---------------------------------------------------------
-    // Read request body
+    // 1. Read request body
     // ---------------------------------------------------------
 
     const body = await request.json();
@@ -21,10 +13,6 @@ export async function POST(request: Request) {
     console.log("======================================");
     console.log("SAVE ORDER ROUTE CALLED");
     console.log("======================================");
-
-    // ---------------------------------------------------------
-    // Get order information
-    // ---------------------------------------------------------
 
     const {
       user_id,
@@ -50,10 +38,16 @@ export async function POST(request: Request) {
     console.log("paymentStatus:", paymentStatus);
 
     // ---------------------------------------------------------
-    // Validate user ID
+    // 2. Validate user ID
     // ---------------------------------------------------------
 
-    if (!user_id) {
+    if (
+      !user_id ||
+      typeof user_id !== "string" ||
+      user_id.trim() === ""
+    ) {
+      console.error("Missing user_id.");
+
       return NextResponse.json(
         {
           success: false,
@@ -64,14 +58,34 @@ export async function POST(request: Request) {
     }
 
     // ---------------------------------------------------------
-    // IMPORTANT:
-    //
-    // Orders must only be saved after successful payment.
+    // 3. Validate Stripe session
+    // ---------------------------------------------------------
+
+    if (
+      !stripeSessionId ||
+      typeof stripeSessionId !== "string"
+    ) {
+      console.error(
+        "Missing Stripe Checkout Session ID."
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Missing Stripe Checkout Session ID.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // ---------------------------------------------------------
+    // 4. Validate payment
     // ---------------------------------------------------------
 
     if (paymentStatus !== "paid") {
       console.error(
-        "Save order rejected because paymentStatus is not paid:",
+        "Order rejected because paymentStatus is not paid:",
         paymentStatus
       );
 
@@ -86,24 +100,7 @@ export async function POST(request: Request) {
     }
 
     // ---------------------------------------------------------
-    // Validate Stripe session ID
-    //
-    // The webhook should provide this.
-    // ---------------------------------------------------------
-
-    if (!stripeSessionId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Missing Stripe Checkout Session ID.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // ---------------------------------------------------------
-    // Safely prepare order items
+    // 5. Validate items
     // ---------------------------------------------------------
 
     let orderItems: any[] = [];
@@ -112,8 +109,8 @@ export async function POST(request: Request) {
       orderItems = items;
     } else if (
       typeof items === "string" &&
-      items !== "undefined" &&
-      items.trim() !== ""
+      items.trim() !== "" &&
+      items !== "undefined"
     ) {
       try {
         const parsedItems = JSON.parse(items);
@@ -138,11 +135,11 @@ export async function POST(request: Request) {
       }
     }
 
-    // ---------------------------------------------------------
-    // Make sure there are actual products
-    // ---------------------------------------------------------
-
     if (orderItems.length === 0) {
+      console.error(
+        "Cannot save order without items."
+      );
+
       return NextResponse.json(
         {
           success: false,
@@ -154,34 +151,32 @@ export async function POST(request: Request) {
     }
 
     // ---------------------------------------------------------
-    // Get Firestore orders collection
+    // 6. Use Firebase Admin Firestore
     // ---------------------------------------------------------
 
-    const ordersRef =
-      collection(db, "orders");
+    const ordersRef = adminDb.collection("orders");
+
+    console.log(
+      "Using Firebase Admin Firestore."
+    );
 
     // ---------------------------------------------------------
-    // Prevent duplicate Stripe orders
+    // 7. Prevent duplicate Stripe orders
     // ---------------------------------------------------------
 
-    const existingOrderQuery =
-      query(
-        ordersRef,
-        where(
+    const existingOrdersSnapshot =
+      await ordersRef
+        .where(
           "stripeSessionId",
           "==",
           String(stripeSessionId)
         )
-      );
+        .limit(1)
+        .get();
 
-    const existingOrders =
-      await getDocs(
-        existingOrderQuery
-      );
-
-    if (!existingOrders.empty) {
+    if (!existingOrdersSnapshot.empty) {
       const existingOrder =
-        existingOrders.docs[0];
+        existingOrdersSnapshot.docs[0];
 
       console.log(
         "======================================"
@@ -209,61 +204,80 @@ export async function POST(request: Request) {
         success: true,
         alreadyExists: true,
         orderId: existingOrder.id,
-        message:
-          "Order already exists.",
+        message: "Order already exists.",
       });
     }
 
     // ---------------------------------------------------------
-    // Prepare Firestore order
+    // 8. Prepare Firestore order
     // ---------------------------------------------------------
 
+    const now =
+      new Date().toISOString();
+
     const orderData = {
-      // User
       user_id: String(user_id),
 
-      // Products
       items: orderItems,
 
-      // Prices
       price: Number(price) || 0,
-      shipping: Number(shipping) || 0,
-      tax: Number(tax) || 0,
-      total: Number(total) || 0,
 
-      // Customer
-      fullName: fullName || "",
-      phone: phone || "",
+      shipping:
+        Number(shipping) || 0,
+
+      tax:
+        Number(tax) || 0,
+
+      total:
+        Number(total) || 0,
+
+      fullName:
+        typeof fullName === "string"
+          ? fullName
+          : "",
+
+      phone:
+        typeof phone === "string"
+          ? phone
+          : "",
+
       shippingAddress:
-        shippingAddress || "",
+        typeof shippingAddress === "string"
+          ? shippingAddress
+          : "",
+
       customerEmail:
-        customerEmail || "",
+        typeof customerEmail === "string"
+          ? customerEmail
+          : "",
 
-      // Order status
       status:
-        status || "Paid / Processing",
+        typeof status === "string" &&
+        status.trim() !== ""
+          ? status
+          : "Paid / Processing",
 
-      // Payment status
-      paymentStatus:
-        "paid",
+      paymentStatus: "paid",
 
       paymentMethod:
-        paymentMethod || "Stripe",
+        typeof paymentMethod === "string" &&
+        paymentMethod.trim() !== ""
+          ? paymentMethod
+          : "Stripe",
 
-      // Stripe information
       stripeSessionId:
         String(stripeSessionId),
 
       stripePaymentIntentId:
-        stripePaymentIntentId || null,
+        stripePaymentIntentId
+          ? String(stripePaymentIntentId)
+          : null,
 
-      // Timestamps
-      createdAt:
-        new Date().toISOString(),
+      createdAt: now,
 
       paidAt:
         paidAt ||
-        new Date().toISOString(),
+        now,
     };
 
     console.log(
@@ -284,17 +298,14 @@ export async function POST(request: Request) {
     );
 
     // ---------------------------------------------------------
-    // Save to Firestore
+    // 9. Save using Firebase Admin
     // ---------------------------------------------------------
 
     const docRef =
-      await addDoc(
-        ordersRef,
-        orderData
-      );
+      await ordersRef.add(orderData);
 
     // ---------------------------------------------------------
-    // Success
+    // 10. Success
     // ---------------------------------------------------------
 
     console.log(
@@ -313,6 +324,11 @@ export async function POST(request: Request) {
     console.log(
       "Stripe Session ID:",
       stripeSessionId
+    );
+
+    console.log(
+      "User ID:",
+      user_id
     );
 
     console.log(
@@ -353,4 +369,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
