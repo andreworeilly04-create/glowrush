@@ -22,16 +22,13 @@ type Order = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [trackingOrder, setTrackingOrder] =
-    useState<string | null>(null);
+  const [trackingOrder, setTrackingOrder] = useState<string | null>(null);
 
   // =========================================================
   // FORMAT ORDERS
   // =========================================================
 
-  const formatOrders = (
-    databaseOrders: any[]
-  ): Order[] => {
+  const formatOrders = (databaseOrders: any[]): Order[] => {
     return databaseOrders.map((order: any) => {
       let items: any[] = [];
 
@@ -49,14 +46,10 @@ export default function OrdersPage() {
           }
         }
       } catch (error) {
-        console.error(
-          "Orders - failed to parse items:",
-          error
-        );
+        console.error("Orders - failed to parse items:", error);
       }
 
-      const firstItem =
-        items.length > 0 ? items[0] : null;
+      const firstItem = items.length > 0 ? items[0] : null;
 
       const name =
         items.length > 0
@@ -65,7 +58,7 @@ export default function OrdersPage() {
                 (item: any) =>
                   `${item?.name || "Item"} (Quantity: ${
                     Number(item?.quantity) || 1
-                  })`
+                  })`,
               )
               .join(", ")
           : "GlowRush Order";
@@ -73,14 +66,9 @@ export default function OrdersPage() {
       let image = "";
 
       if (firstItem?.image) {
-        if (
-          typeof firstItem.image === "string"
-        ) {
+        if (typeof firstItem.image === "string") {
           image = firstItem.image;
-        } else if (
-          typeof firstItem.image === "object" &&
-          firstItem.image.src
-        ) {
+        } else if (typeof firstItem.image === "object" && firstItem.image.src) {
           image = firstItem.image.src;
         }
       }
@@ -92,28 +80,17 @@ export default function OrdersPage() {
 
         image,
 
-        status:
-          order.status ||
-          "Paid / Processing",
+        status: order.status || "Paid / Processing",
 
-        paymentStatus:
-          order.paymentStatus || "",
+        paymentStatus: order.paymentStatus || "",
 
-        price: `$${Number(
-          order.price || 0
-        ).toFixed(2)}`,
+        price: `$${Number(order.price || 0).toFixed(2)}`,
 
-        shipping: `$${Number(
-          order.shipping || 0
-        ).toFixed(2)}`,
+        shipping: `$${Number(order.shipping || 0).toFixed(2)}`,
 
-        tax: `$${Number(
-          order.tax || 0
-        ).toFixed(2)}`,
+        tax: `$${Number(order.tax || 0).toFixed(2)}`,
 
-        total: `$${Number(
-          order.total || 0
-        ).toFixed(2)}`,
+        total: `$${Number(order.total || 0).toFixed(2)}`,
       };
     });
   };
@@ -122,48 +99,32 @@ export default function OrdersPage() {
   // LOAD ORDERS THROUGH SERVER
   // =========================================================
 
-  const loadOrders = async (
-    firebaseUser: any
-  ) => {
+  const loadOrders = async (firebaseUser: any) => {
     try {
-      console.log(
-        "======================================"
-      );
+      console.log("======================================");
 
-      console.log(
-        "ORDERS: Loading orders"
-      );
+      console.log("ORDERS: Loading orders");
 
-      console.log(
-        "Firebase UID:",
-        firebaseUser?.uid
-      );
+      console.log("Firebase UID:", firebaseUser?.uid);
 
-      console.log(
-        "======================================"
-      );
+      console.log("======================================");
 
       // -------------------------------------------------------
       // Make sure user exists
       // -------------------------------------------------------
 
       if (!firebaseUser) {
-        console.error(
-          "Orders - no Firebase user."
-        );
+        console.error("Orders - no Firebase user.");
 
         setOrders([]);
 
         return;
       }
 
-      const userId =
-        firebaseUser.uid;
+      const userId = firebaseUser.uid;
 
       if (!userId) {
-        console.error(
-          "Orders - Firebase user has no UID."
-        );
+        console.error("Orders - Firebase user has no UID.");
 
         setOrders([]);
 
@@ -174,87 +135,60 @@ export default function OrdersPage() {
       // Get Firebase authentication token
       // -------------------------------------------------------
 
-      console.log(
-        "Orders - getting Firebase ID token..."
-      );
+      console.log("Orders - getting Firebase ID token...");
 
-      const token =
-        await firebaseUser.getIdToken(
-          true
-        );
+      const token = await firebaseUser.getIdToken(true);
 
       if (!token) {
-        console.error(
-          "Orders - Firebase ID token was not returned."
-        );
+        console.error("Orders - Firebase ID token was not returned.");
 
         setOrders([]);
 
         return;
       }
 
-      console.log(
-        "Orders - Firebase ID token received."
-      );
+      console.log("Orders - Firebase ID token received.");
 
       // -------------------------------------------------------
       // Call server-side Orders API
       // -------------------------------------------------------
 
-      console.log(
-        "Orders - calling /api/orders/get..."
+      console.log("Orders - calling /api/orders/get...");
+
+      const response = await fetch(
+        `/api/orders/get?user_id=${encodeURIComponent(userId)}`,
+        {
+          method: "GET",
+
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+
+          cache: "no-store",
+        },
       );
 
-      const response =
-        await fetch(
-          "/api/orders/get",
-          {
-            method: "GET",
-
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-
-            cache: "no-store",
-          }
-        );
-
-      console.log(
-        "Orders API status:",
-        response.status
-      );
+      console.log("Orders API status:", response.status);
 
       // -------------------------------------------------------
       // Read response safely
       // -------------------------------------------------------
 
-      const responseText =
-        await response.text();
+      const responseText = await response.text();
 
       let data: any = {};
 
       try {
-        data = responseText
-          ? JSON.parse(
-              responseText
-            )
-          : {};
+        data = responseText ? JSON.parse(responseText) : {};
       } catch (error) {
-        console.error(
-          "Orders - server returned invalid JSON:",
-          responseText
-        );
+        console.error("Orders - server returned invalid JSON:", responseText);
 
         setOrders([]);
 
         return;
       }
 
-      console.log(
-        "Orders API response:",
-        data
-      );
+      console.log("Orders API response:", data);
 
       // -------------------------------------------------------
       // Handle API error
@@ -264,7 +198,7 @@ export default function OrdersPage() {
         console.error(
           "Orders API returned error:",
           response.status,
-          data?.error
+          data?.error,
         );
 
         setOrders([]);
@@ -273,10 +207,7 @@ export default function OrdersPage() {
       }
 
       if (!data.success) {
-        console.error(
-          "Orders API failed:",
-          data?.error
-        );
+        console.error("Orders API failed:", data?.error);
 
         setOrders([]);
 
@@ -287,120 +218,67 @@ export default function OrdersPage() {
       // Get orders from API
       // -------------------------------------------------------
 
-      const databaseOrders =
-        Array.isArray(data.orders)
-          ? data.orders
-          : [];
+      const databaseOrders = Array.isArray(data.orders) ? data.orders : [];
 
-      console.log(
-        "Orders received from server:",
-        databaseOrders.length
-      );
+      console.log("Orders received from server:", databaseOrders.length);
 
       // -------------------------------------------------------
       // Log each order for debugging
       // -------------------------------------------------------
 
-      databaseOrders.forEach(
-        (order: any) => {
-          console.log(
-            "Firestore order:",
-            {
-              id: order.id,
-              user_id:
-                order.user_id,
-              paymentStatus:
-                order.paymentStatus,
-              status:
-                order.status,
-              createdAt:
-                order.createdAt,
-            }
-          );
-        }
-      );
+      databaseOrders.forEach((order: any) => {
+        console.log("Firestore order:", {
+          id: order.id,
+          user_id: order.user_id,
+          paymentStatus: order.paymentStatus,
+          status: order.status,
+          createdAt: order.createdAt,
+        });
+      });
 
       // -------------------------------------------------------
       // Only show paid orders
       // -------------------------------------------------------
 
-      const paidOrders =
-        databaseOrders.filter(
-          (order: any) => {
-            const paymentStatus =
-              String(
-                order.paymentStatus ||
-                  ""
-              )
-                .trim()
-                .toLowerCase();
+      const paidOrders = databaseOrders.filter((order: any) => {
+        const paymentStatus = String(order.paymentStatus || "")
+          .trim()
+          .toLowerCase();
 
-            return (
-              paymentStatus === "paid"
-            );
-          }
-        );
+        return paymentStatus === "paid";
+      });
 
-      console.log(
-        "Paid orders:",
-        paidOrders.length
-      );
+      console.log("Paid orders:", paidOrders.length);
 
       // -------------------------------------------------------
       // Sort newest first
       // -------------------------------------------------------
 
-      paidOrders.sort(
-        (a: any, b: any) => {
-          const dateA =
-            new Date(
-              a.createdAt || 0
-            ).getTime();
+      paidOrders.sort((a: any, b: any) => {
+        const dateA = new Date(a.createdAt || 0).getTime();
 
-          const dateB =
-            new Date(
-              b.createdAt || 0
-            ).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
 
-          return dateB - dateA;
-        }
-      );
+        return dateB - dateA;
+      });
 
       // -------------------------------------------------------
       // Format orders for display
       // -------------------------------------------------------
 
-      const formattedOrders =
-        formatOrders(
-          paidOrders
-        );
+      const formattedOrders = formatOrders(paidOrders);
 
-      console.log(
-        "Formatted orders:",
-        formattedOrders
-      );
+      console.log("Formatted orders:", formattedOrders);
 
-      setOrders(
-        formattedOrders
-      );
+      setOrders(formattedOrders);
     } catch (error: any) {
-      console.error(
-        "======================================"
-      );
+      console.error("======================================");
 
-      console.error(
-        "ORDERS LOAD ERROR:",
-        error
-      );
+      console.error("ORDERS LOAD ERROR:", error);
 
-      console.error(
-        "Error message:",
-        error?.message
-      );
+      console.error("Error message:", error?.message);
 
-      console.error(
-        "======================================"
-      );
+      console.error("======================================");
 
       setOrders([]);
     }
@@ -411,76 +289,51 @@ export default function OrdersPage() {
   // =========================================================
 
   useEffect(() => {
-    console.log(
-      "Orders - waiting for Firebase authentication..."
-    );
+    console.log("Orders - waiting for Firebase authentication...");
 
-    const unsubscribe =
-      onAuthStateChanged(
-        auth,
-        async (firebaseUser) => {
-          try {
-            // -------------------------------------------------
-            // No user
-            // -------------------------------------------------
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        // -------------------------------------------------
+        // No user
+        // -------------------------------------------------
 
-            if (!firebaseUser) {
-              console.warn(
-                "Orders - no Firebase user is signed in."
-              );
+        if (!firebaseUser) {
+          console.warn("Orders - no Firebase user is signed in.");
 
-              setOrders([]);
+          setOrders([]);
 
-              setLoading(false);
+          setLoading(false);
 
-              return;
-            }
-
-            // -------------------------------------------------
-            // User exists
-            // -------------------------------------------------
-
-            console.log(
-              "======================================"
-            );
-
-            console.log(
-              "ORDERS: Firebase user authenticated"
-            );
-
-            console.log(
-              "Firebase UID:",
-              firebaseUser.uid
-            );
-
-            console.log(
-              "Firebase email:",
-              firebaseUser.email
-            );
-
-            console.log(
-              "======================================"
-            );
-
-            // -------------------------------------------------
-            // Load through server
-            // -------------------------------------------------
-
-            await loadOrders(
-              firebaseUser
-            );
-          } catch (error) {
-            console.error(
-              "Orders - authentication error:",
-              error
-            );
-
-            setOrders([]);
-          } finally {
-            setLoading(false);
-          }
+          return;
         }
-      );
+
+        // -------------------------------------------------
+        // User exists
+        // -------------------------------------------------
+
+        console.log("======================================");
+
+        console.log("ORDERS: Firebase user authenticated");
+
+        console.log("Firebase UID:", firebaseUser.uid);
+
+        console.log("Firebase email:", firebaseUser.email);
+
+        console.log("======================================");
+
+        // -------------------------------------------------
+        // Load through server
+        // -------------------------------------------------
+
+        await loadOrders(firebaseUser);
+      } catch (error) {
+        console.error("Orders - authentication error:", error);
+
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    });
 
     return () => {
       unsubscribe();
@@ -491,38 +344,25 @@ export default function OrdersPage() {
   // TRACK ORDER
   // =========================================================
 
-  const trackOrder = async (
-    orderId: string
-  ) => {
+  const trackOrder = async (orderId: string) => {
     try {
-      setTrackingOrder(
-        orderId
-      );
+      setTrackingOrder(orderId);
 
-      const firebaseUser =
-        auth.currentUser;
+      const firebaseUser = auth.currentUser;
 
       if (!firebaseUser) {
         console.error(
-          "Orders - cannot track order because no Firebase user is signed in."
+          "Orders - cannot track order because no Firebase user is signed in.",
         );
 
         return;
       }
 
-      console.log(
-        "Refreshing order:",
-        orderId
-      );
+      console.log("Refreshing order:", orderId);
 
-      await loadOrders(
-        firebaseUser
-      );
+      await loadOrders(firebaseUser);
     } catch (error) {
-      console.error(
-        "Orders - failed to refresh orders:",
-        error
-      );
+      console.error("Orders - failed to refresh orders:", error);
     } finally {
       setTrackingOrder(null);
     }
@@ -532,161 +372,97 @@ export default function OrdersPage() {
   // CANCEL ORDER
   // =========================================================
 
-  const handleCancelOrder =
-    async (
-      orderId: string
-    ) => {
-      try {
-        const firestoreId =
-          orderId.startsWith(
-            "ORD-"
-          )
-            ? orderId.substring(4)
-            : orderId;
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      const firestoreId = orderId.startsWith("ORD-")
+        ? orderId.substring(4)
+        : orderId;
 
-        const firebaseUser =
-          auth.currentUser;
+      const firebaseUser = auth.currentUser;
 
-        if (!firebaseUser) {
-          console.error(
-            "Orders - cannot cancel order because no Firebase user is signed in."
-          );
-
-          return;
-        }
-
-        // -----------------------------------------------------
-        // Get Firebase token
-        // -----------------------------------------------------
-
-        const token =
-          await firebaseUser.getIdToken(
-            true
-          );
-
-        // -----------------------------------------------------
-        // Call server delete API
-        // -----------------------------------------------------
-
-        const response =
-          await fetch(
-            "/api/orders/delete",
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                Authorization:
-                  `Bearer ${token}`,
-              },
-
-              body: JSON.stringify({
-                id: firestoreId,
-              }),
-            }
-          );
-
-        const text =
-          await response.text();
-
-        let data: any = {};
-
-        try {
-          data = text
-            ? JSON.parse(text)
-            : {};
-        } catch {
-          console.error(
-            "Orders - invalid delete response:",
-            text
-          );
-
-          return;
-        }
-
-        console.log(
-          "Delete order response:",
-          data
-        );
-
-        if (data.success) {
-          setOrders(
-            (previousOrders) =>
-              previousOrders.filter(
-                (order) =>
-                  order.id !==
-                  orderId
-              )
-          );
-        } else {
-          console.error(
-            "Orders - failed to cancel order:",
-            data?.error
-          );
-        }
-      } catch (error) {
+      if (!firebaseUser) {
         console.error(
-          "Orders - cancel order error:",
-          error
+          "Orders - cannot cancel order because no Firebase user is signed in.",
         );
+
+        return;
       }
-    };
+
+      // -----------------------------------------------------
+      // Get Firebase token
+      // -----------------------------------------------------
+
+      const token = await firebaseUser.getIdToken(true);
+
+      // -----------------------------------------------------
+      // Call server delete API
+      // -----------------------------------------------------
+
+      const response = await fetch("/api/orders/delete", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+
+          Authorization: `Bearer ${token}`,
+        },
+
+        body: JSON.stringify({
+          id: firestoreId,
+        }),
+      });
+
+      const text = await response.text();
+
+      let data: any = {};
+
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        console.error("Orders - invalid delete response:", text);
+
+        return;
+      }
+
+      console.log("Delete order response:", data);
+
+      if (data.success) {
+        setOrders((previousOrders) =>
+          previousOrders.filter((order) => order.id !== orderId),
+        );
+      } else {
+        console.error("Orders - failed to cancel order:", data?.error);
+      }
+    } catch (error) {
+      console.error("Orders - cancel order error:", error);
+    }
+  };
 
   // =========================================================
   // PAGE
   // =========================================================
 
   return (
-    <div
-      className={
-        styles.container
-      }
-    >
-      <h1
-        className={
-          styles.title
-        }
-      >
-        Your Orders
-      </h1>
+    <div className={styles.container}>
+      <h1 className={styles.title}>Your Orders</h1>
 
       {/* =====================================================
           LOADING
       ===================================================== */}
 
       {loading ? (
-        <div
-          className={
-            styles.emptyState
-          }
-        >
-          <p>
-            Loading orders...
-          </p>
+        <div className={styles.emptyState}>
+          <p>Loading orders...</p>
         </div>
       ) : orders.length === 0 ? (
         /* ===================================================
            NO ORDERS
         =================================================== */
 
-        <div
-          className={
-            styles.emptyState
-          }
-        >
-          <p>
-            No completed orders
-            found.
-          </p>
+        <div className={styles.emptyState}>
+          <p>No completed orders found.</p>
 
-          <Link
-            href="/glowsticks"
-            className={
-              styles.shopGlowBtn
-            }
-          >
+          <Link href="/glowsticks" className={styles.shopGlowBtn}>
             Shop Glow Sticks
           </Link>
         </div>
@@ -695,174 +471,79 @@ export default function OrdersPage() {
            ORDERS
         =================================================== */
 
-        <div
-          className={
-            styles.ordersList
-          }
-        >
-          {orders.map(
-            (order) => (
-              <div
-                key={order.id}
-                className={
-                  styles.orderCard
-                }
-              >
-                {/* ==========================================
+        <div className={styles.ordersList}>
+          {orders.map((order) => (
+            <div key={order.id} className={styles.orderCard}>
+              {/* ==========================================
                     LEFT SIDE
                 ========================================== */}
 
-                <div
-                  className={
-                    styles.orderLeft
-                  }
-                >
-                  {order.image && (
-                    <Image
-                      src={
-                        order.image
-                      }
-                      width={80}
-                      height={80}
-                      className={
-                        styles.productImg
-                      }
-                      alt={
-                        order.name
-                      }
-                    />
-                  )}
+              <div className={styles.orderLeft}>
+                {order.image && (
+                  <Image
+                    src={order.image}
+                    width={80}
+                    height={80}
+                    className={styles.productImg}
+                    alt={order.name}
+                  />
+                )}
 
-                  <div
-                    className={
-                      styles.orderDetails
-                    }
-                  >
-                    <h3>
-                      {order.name}
-                    </h3>
+                <div className={styles.orderDetails}>
+                  <h3>{order.name}</h3>
 
-                    <span
-                      className={
-                        styles.statusBadge
-                      }
-                    >
-                      Status:{" "}
-                      {
-                        order.status
-                      }
-                    </span>
-                  </div>
+                  <span className={styles.statusBadge}>
+                    Status: {order.status}
+                  </span>
                 </div>
+              </div>
 
-                {/* ==========================================
+              {/* ==========================================
                     RIGHT SIDE
                 ========================================== */}
 
-                <div
-                  className={
-                    styles.orderRight
-                  }
-                >
-                  <div
-                    className={
-                      styles.priceInfo
-                    }
-                  >
-                    Price:{" "}
-                    <span>
-                      {
-                        order.price
-                      }
-                    </span>
-                  </div>
+              <div className={styles.orderRight}>
+                <div className={styles.priceInfo}>
+                  Price: <span>{order.price}</span>
+                </div>
 
-                  <div
-                    className={
-                      styles.priceInfo
-                    }
-                  >
-                    Shipping:{" "}
-                    <span>
-                      {
-                        order.shipping
-                      }
-                    </span>
-                  </div>
+                <div className={styles.priceInfo}>
+                  Shipping: <span>{order.shipping}</span>
+                </div>
 
-                  <div
-                    className={
-                      styles.priceInfo
-                    }
-                  >
-                    Tax:{" "}
-                    <span>
-                      {order.tax}
-                    </span>
-                  </div>
+                <div className={styles.priceInfo}>
+                  Tax: <span>{order.tax}</span>
+                </div>
 
-                  <div
-                    className={
-                      styles.priceInfo
-                    }
-                  >
-                    Total:{" "}
-                    <span>
-                      {
-                        order.total
-                      }
-                    </span>
-                  </div>
+                <div className={styles.priceInfo}>
+                  Total: <span>{order.total}</span>
+                </div>
 
-                  {/* ========================================
+                {/* ========================================
                       BUTTONS
                   ======================================== */}
 
-                  <div
-                    className={
-                      styles.buttonGroup
-                    }
+                <div className={styles.buttonGroup}>
+                  <button
+                    onClick={() => trackOrder(order.id)}
+                    className={styles.trackBtn}
+                    disabled={trackingOrder === order.id}
                   >
-                    <button
-                      onClick={() =>
-                        trackOrder(
-                          order.id
-                        )
-                      }
-                      className={
-                        styles.trackBtn
-                      }
-                      disabled={
-                        trackingOrder ===
-                        order.id
-                      }
-                    >
-                      {trackingOrder ===
-                      order.id
-                        ? "Checking..."
-                        : "Track Order"}
-                    </button>
+                    {trackingOrder === order.id ? "Checking..." : "Track Order"}
+                  </button>
 
-                    {order.status ===
-                      "Paid / Processing" && (
-                      <button
-                        className={
-                          styles.cancelBtn
-                        }
-                        onClick={() =>
-                          handleCancelOrder(
-                            order.id
-                          )
-                        }
-                      >
-                        Cancel Order
-                      </button>
-                    )}
-                  </div>
+                  {order.status === "Paid / Processing" && (
+                    <button
+                      className={styles.cancelBtn}
+                      onClick={() => handleCancelOrder(order.id)}
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                 </div>
               </div>
-            )
-          )}
+            </div>
+          ))}
         </div>
       )}
     </div>
