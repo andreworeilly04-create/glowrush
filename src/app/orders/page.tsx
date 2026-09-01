@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import styles from "./page.orders.module.css";
@@ -659,6 +658,7 @@ export default function OrdersPage() {
                       <p
                         style={{
                           margin: 0,
+                          color:"yellowgreen",
                         }}
                       >
                         Price: ${Number(item.price || 0).toFixed(2)}
@@ -669,6 +669,7 @@ export default function OrdersPage() {
                           style={{
                             margin: "6px 0 0 0",
                             fontSize: "14px",
+                            color:'yellowgreen'
                           }}
                         >
                           {item.description}
