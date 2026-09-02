@@ -32,9 +32,9 @@
 
 @media (min-width: 600px) {
   .orderCard {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
   }
 }
 
