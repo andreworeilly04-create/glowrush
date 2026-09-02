@@ -77,10 +77,10 @@ export default function OrdersPage() {
   // =========================================================  
   
   const formatOrders = (databaseOrders: any[]): Order[] => {  
-    console.log("======================================"); 
-    console.log("🔎 ORDERS DEBUG: formatOrders received"); 
-    console.log("Number of database orders:", databaseOrders.length); 
-    console.log("======================================"); 
+    console.log("======================================");  
+    console.log("🔎 ORDERS DEBUG: formatOrders received");  
+    console.log("Number of database orders:", databaseOrders.length);  
+    console.log("======================================");  
   
     return databaseOrders.map((order: any) => {  
       let rawItems: any[] = [];  
@@ -545,7 +545,7 @@ export default function OrdersPage() {
         </div>  
       ) : orders.length === 0 ? (  
         <div className={styles.emptyState}>  
-          <p>No completed orders found.</p>  
+          <p>No orders found.</p>  
   
           <Link href="/glowsticks" className={styles.shopGlowBtn}>  
             Shop Glow Sticks  
@@ -561,9 +561,10 @@ export default function OrdersPage() {
   
               <div className={styles.orderLeft}>  
                 <div className={styles.orderDetails}>  
-                  <h3 style={{ color: "rgb(219, 255, 148)" }}>{order.id}</h3>  
-  
-                  <span className={styles.statusBadge}>  
+                  <span  
+                    className={styles.statusBadge}  
+                    style={{ whiteSpace: "nowrap" }}  
+                  >  
                     Status: {order.status}  
                   </span>  
                 </div>  
