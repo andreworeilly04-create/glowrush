@@ -31,6 +31,7 @@
 }
 
 /* Right Column Wrapper to Prevent Overflow */
+
 .summaryColumn {
   display: flex;
   flex-direction: column;
@@ -39,6 +40,7 @@
 }
 
 /* Order Summary */
+
 .summaryList {
   display: flex;
   flex-direction: column;
@@ -125,6 +127,7 @@
 }
 
 /* Form Styling */
+
 .checkoutForm {
   display: flex;
   flex-direction: column;
@@ -159,7 +162,6 @@
   border-color: #9acd32;
 }
 
-
 .placeOrderBtn {
   background-color: yellowgreen;
   color: #1b3022;
@@ -177,7 +179,7 @@
 .placeOrderBtn:hover {
   background-color: green;
   transform: translateY(-1px);
-  color:white;
+  color: white;
 }
 
 .emptyState {
@@ -186,7 +188,28 @@
   font-size: 1.1em;
 }
 
-/* Responsive design */
+/* Internal CSS moved from TSX */
+
+.emptyCartMessage {
+  margin: 15px 0;
+}
+
+.browseGlowBtn {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  width: auto;
+  padding: 10px 20px;
+}
+
+.locationGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+/* Responsive Design */
+
 @media (max-width: 768px) {
   .checkoutGrid {
     grid-template-columns: 1fr;

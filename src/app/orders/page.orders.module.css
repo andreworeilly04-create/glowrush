@@ -1,3 +1,4 @@
+
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -101,6 +102,10 @@
   font-size: 0.75rem;
   font-weight: 600;
   border: 1px solid rgba(132, 204, 22, 0.3);
+}
+
+.statusBadgeNoWrap {
+  white-space: nowrap;
 }
 
 .orderRight {
@@ -209,6 +214,73 @@
 }
 
 /* =========================================================
+   ORDER ITEMS
+   ========================================================= */
+
+.itemsContainer {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.orderItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+}
+
+.orderItemWithBorder {
+  border-bottom: 1px solid rgb(219, 255, 148);
+}
+
+.noImage {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.itemInfo {
+  flex: 1;
+}
+
+.itemInfo h3 {
+  margin: 0 0 6px 0;
+  color: yellowgreen;
+}
+
+.quantityText {
+  margin: 0 0 5px 0;
+  color: rgb(219, 255, 148);
+}
+
+.quantityText span {
+  color: yellowgreen;
+}
+
+.itemPrice {
+  margin: 0;
+  color: rgb(219, 255, 148);
+}
+
+.itemPrice span {
+  color: yellowgreen;
+}
+
+.itemDescription {
+  margin: 6px 0 0 0;
+  font-size: 14px;
+  color: rgb(219, 255, 148);
+}
+
+/* =========================================================
    CANCEL CONFIRMATION MODAL
    ========================================================= */
 
@@ -309,3 +381,5 @@
     width: 100%;
   }
 }
+
+

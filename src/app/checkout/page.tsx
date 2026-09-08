@@ -424,9 +424,9 @@ export default function CheckoutPage() {
           </h2>
 
           <p
-            style={{
-              margin: "15px 0",
-            }}
+            className={
+              styles.emptyCartMessage
+            }
           >
             Add some glowsticks before
             heading to checkout.
@@ -434,19 +434,7 @@ export default function CheckoutPage() {
 
           <Link
             href="/glowsticks"
-            className={
-              styles.placeOrderBtn
-            }
-            style={{
-              display:
-                "inline-block",
-              textDecoration:
-                "none",
-              textAlign: "center",
-              width: "auto",
-              padding:
-                "10px 20px",
-            }}
+            className={`${styles.placeOrderBtn} ${styles.browseGlowBtn}`}
           >
             Browse Glow Sticks
           </Link>
@@ -605,12 +593,9 @@ export default function CheckoutPage() {
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "1fr 1fr 1fr",
-              gap: "10px",
-            }}
+            className={
+              styles.locationGrid
+            }
           >
             <div
               className={
@@ -914,4 +899,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-

@@ -232,7 +232,7 @@ export default function OrdersPage() {
       try {
         data = responseText ? JSON.parse(responseText) : {};
       } catch (error) {
-        console.error("❌ Orders API returned INVALID JSON", error);
+        console.error("❌ Orders API returned INVALID JSON");
         setOrders([]);
         return;
       }
@@ -246,7 +246,7 @@ export default function OrdersPage() {
       }
 
       if (!data.success) {
-        console.error("❌ Orders API success=false:", data?.error);
+        console.error("❌ ORDERS API success=false:", data?.error);
         setOrders([]);
         return;
       }
@@ -471,34 +471,22 @@ export default function OrdersPage() {
                   </p>
 
                   <span
-                    className={styles.statusBadge}
-                    style={{ whiteSpace: "nowrap" }}
+                    className={`${styles.statusBadge} ${styles.statusBadgeNoWrap}`}
                   >
                     Status: {order.status}
                   </span>
                 </div>
               </div>
 
-              <div
-                style={{
-                  width: "100%",
-                  marginTop: "20px",
-                  marginBottom: "20px",
-                }}
-              >
+              <div className={styles.itemsContainer}>
                 {order.items.map((item, index) => (
                   <div
                     key={`${order.id}-${index}`}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "16px",
-                      padding: "14px 0",
-                      borderBottom:
-                        index < order.items.length - 1
-                          ? "1px solid rgb(219, 255, 148)"
-                          : "none",
-                    }}
+                    className={`${styles.orderItem} ${
+                      index < order.items.length - 1
+                        ? styles.orderItemWithBorder
+                        : ""
+                    }`}
                   >
                     {item.image ? (
                       <Image
@@ -520,66 +508,28 @@ export default function OrdersPage() {
                         }}
                       />
                     ) : (
-                      <div
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          minWidth: "80px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          border: "1px solid #ddd",
-                          borderRadius: "8px",
-                          fontSize: "12px",
-                          textAlign: "center",
-                        }}
-                      >
+                      <div className={styles.noImage}>
                         No image
                       </div>
                     )}
 
-                    <div style={{ flex: 1 }}>
-                      <h3
-                        style={{
-                          margin: "0 0 6px 0",
-                          color: "yellowgreen",
-                        }}
-                      >
-                        {item.name}
-                      </h3>
+                    <div className={styles.itemInfo}>
+                      <h3>{item.name}</h3>
 
-                      <p
-                        style={{
-                          margin: "0 0 5px 0",
-                          color: "rgb(219, 255, 148)",
-                        }}
-                      >
+                      <p className={styles.quantityText}>
                         Quantity:{" "}
-                        <span style={{ color: "yellowgreen" }}>
-                          {item.quantity}
-                        </span>
+                        <span>{item.quantity}</span>
                       </p>
 
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "rgb(219, 255, 148)",
-                        }}
-                      >
+                      <p className={styles.itemPrice}>
                         Price:{" "}
-                        <span style={{ color: "yellowgreen" }}>
+                        <span>
                           ${Number(item.price || 0).toFixed(2)}
                         </span>
                       </p>
 
                       {item.description && (
-                        <p
-                          style={{
-                            margin: "6px 0 0 0",
-                            fontSize: "14px",
-                            color: "rgb(219, 255, 148)",
-                          }}
-                        >
+                        <p className={styles.itemDescription}>
                           {item.description}
                         </p>
                       )}
@@ -674,3 +624,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+
