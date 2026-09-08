@@ -81,6 +81,17 @@
   overflow-wrap: break-word;
 }
 
+.orderDate {
+  margin: 0 0 0.5rem 0;
+  color: rgb(219, 255, 148);
+  font-size: 0.9rem;
+}
+
+.orderDate span {
+  color: yellowgreen;
+  font-weight: 600;
+}
+
 .statusBadge {
   display: inline-block;
   background-color: rgba(132, 204, 22, 0.15);

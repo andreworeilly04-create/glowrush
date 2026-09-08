@@ -24,6 +24,7 @@ type Order = {
   shipping: string;
   tax: string;
   total: string;
+  createdAt: any;
 };
 
 export default function OrdersPage() {
@@ -31,10 +32,6 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [trackingOrder, setTrackingOrder] = useState<string | null>(null);
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
-
-  // =========================================================
-  // GET IMAGE URL
-  // =========================================================
 
   const getImageUrl = (image: any): string => {
     if (!image) {
@@ -71,10 +68,6 @@ export default function OrdersPage() {
 
     return "";
   };
-
-  // =========================================================
-  // FORMAT ORDERS
-  // =========================================================
 
   const formatOrders = (databaseOrders: any[]): Order[] => {
     console.log("======================================");
@@ -135,10 +128,6 @@ export default function OrdersPage() {
         };
       });
 
-      // =====================================================
-      // ORDER IMAGE FALLBACK
-      // =====================================================
-
       if (items.length === 0 && order?.image) {
         const fallbackImage = getImageUrl(order.image);
 
@@ -163,6 +152,7 @@ export default function OrdersPage() {
         shipping: order.shipping,
         tax: order.tax,
         total: order.total,
+        createdAt: order.createdAt,
       });
 
       return {
@@ -174,13 +164,10 @@ export default function OrdersPage() {
         shipping: `$${Number(order.shipping || 0).toFixed(2)}`,
         tax: `$${Number(order.tax || 0).toFixed(2)}`,
         total: `$${Number(order.total || 0).toFixed(2)}`,
+        createdAt: order.createdAt,
       };
     });
   };
-
-  // =========================================================
-  // LOAD ORDERS
-  // =========================================================
 
   const loadOrders = async (firebaseUser: any) => {
     try {
@@ -320,10 +307,6 @@ export default function OrdersPage() {
     }
   };
 
-  // =========================================================
-  // FIREBASE AUTH
-  // =========================================================
-
   useEffect(() => {
     console.log("🔎 Orders - waiting for Firebase authentication...");
 
@@ -356,10 +339,6 @@ export default function OrdersPage() {
     };
   }, []);
 
-  // =========================================================
-  // TRACK ORDER
-  // =========================================================
-
   const trackOrder = async (orderId: string) => {
     try {
       setTrackingOrder(orderId);
@@ -379,10 +358,6 @@ export default function OrdersPage() {
     }
   };
 
-  // =========================================================
-  // CANCEL ORDER
-  // =========================================================
-
   const handleCancelOrder = async (orderId: string) => {
     try {
       const firestoreId = orderId.startsWith("ORD-")
@@ -400,12 +375,10 @@ export default function OrdersPage() {
 
       const response = await fetch("/api/orders/delete", {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-
         body: JSON.stringify({
           id: firestoreId,
         }),
@@ -434,9 +407,41 @@ export default function OrdersPage() {
     }
   };
 
-  // =========================================================
-  // PAGE
-  // =========================================================
+  const formatOrderDate = (createdAt: any): string => {
+    if (!createdAt) {
+      return "Date unavailable";
+    }
+
+    try {
+      let date: Date;
+
+      if (
+        typeof createdAt === "object" &&
+        typeof createdAt.toDate === "function"
+      ) {
+        date = createdAt.toDate();
+      } else if (
+        typeof createdAt === "object" &&
+        typeof createdAt.seconds === "number"
+      ) {
+        date = new Date(createdAt.seconds * 1000);
+      } else {
+        date = new Date(createdAt);
+      }
+
+      if (isNaN(date.getTime())) {
+        return "Date unavailable";
+      }
+
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return "Date unavailable";
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -458,12 +463,13 @@ export default function OrdersPage() {
         <div className={styles.ordersList}>
           {orders.map((order) => (
             <div key={order.id} className={styles.orderCard}>
-              {/* ==========================================
-                    LEFT SIDE
-                ========================================== */}
-
               <div className={styles.orderLeft}>
                 <div className={styles.orderDetails}>
+                  <p className={styles.orderDate}>
+                    Order Date:{" "}
+                    <span>{formatOrderDate(order.createdAt)}</span>
+                  </p>
+
                   <span
                     className={styles.statusBadge}
                     style={{ whiteSpace: "nowrap" }}
@@ -472,10 +478,6 @@ export default function OrdersPage() {
                   </span>
                 </div>
               </div>
-
-              {/* ==========================================
-                    PRODUCTS
-                ========================================== */}
 
               <div
                 style={{
@@ -498,8 +500,6 @@ export default function OrdersPage() {
                           : "none",
                     }}
                   >
-                    {/* PRODUCT IMAGE */}
-
                     {item.image ? (
                       <Image
                         src={item.image}
@@ -538,13 +538,7 @@ export default function OrdersPage() {
                       </div>
                     )}
 
-                    {/* PRODUCT INFORMATION */}
-
-                    <div
-                      style={{
-                        flex: 1,
-                      }}
-                    >
+                    <div style={{ flex: 1 }}>
                       <h3
                         style={{
                           margin: "0 0 6px 0",
@@ -594,10 +588,6 @@ export default function OrdersPage() {
                 ))}
               </div>
 
-              {/* ==========================================
-                    RIGHT SIDE / ORDER TOTALS
-                ========================================== */}
-
               <div className={styles.orderRight}>
                 <div className={styles.priceInfo}>
                   Price: <span>{order.price}</span>
@@ -640,10 +630,6 @@ export default function OrdersPage() {
           ))}
         </div>
       )}
-
-      {/* =====================================================
-          CANCEL CONFIRMATION MODAL
-          ===================================================== */}
 
       {cancelOrderId && (
         <div
