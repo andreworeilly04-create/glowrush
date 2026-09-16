@@ -1,3 +1,4 @@
+
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -7,8 +8,8 @@
 }
 
 .title {
-  color: #adcc14;
   font-size: 1.75rem;
+  color: #adcc14;
   margin-bottom: 1.5rem;
 }
 
@@ -124,30 +125,14 @@
   color: #0d1f12;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
+  border: none;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  appearance: none;
-  -webkit-appearance: none;
 }
 
 .trackBtn:hover {
   background-color: #adcc14;
-}
-
-.trackBtn:focus,
-.trackBtn:focus-visible,
-.trackBtn:active {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.trackBtn::-moz-focus-inner {
-  border: 0 !important;
 }
 
 .cancelBtn {
@@ -163,13 +148,6 @@
 
 .cancelBtn:hover {
   background-color: rgba(239, 68, 68, 0.1);
-}
-
-.cancelBtn:focus,
-.cancelBtn:focus-visible,
-.cancelBtn:active {
-  outline: none;
-  box-shadow: none;
 }
 
 .emptyState {
@@ -241,75 +219,40 @@
   line-height: 1.4;
 }
 
-/* View Order Details button */
+/* View Order Details */
 .detailsBtn {
-  background: #adcc14 !important;
-  background-color: #adcc14 !important;
-  color: #0d1f12 !important;
-
+  background-color: #adcc14;
+  color: #0d1f12;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-
-  border: 0 !important;
-  border-width: 0 !important;
-  border-style: none !important;
-  border-color: transparent !important;
-
-  outline: 0 !important;
-  outline-width: 0 !important;
-  outline-style: none !important;
-
-  box-shadow: none !important;
-
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
 
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-
-  text-decoration: none !important;
+  /* Only added to remove the white browser/global border */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .detailsBtn:hover {
-  background: #84cc16 !important;
-  background-color: #84cc16 !important;
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
+  background-color: #84cc16;
 }
 
-.detailsBtn:focus {
-  background: #adcc14 !important;
-  background-color: #adcc14 !important;
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-}
-
-.detailsBtn:focus-visible {
-  background: #adcc14 !important;
-  background-color: #adcc14 !important;
-  border: 0 !important;
-  outline: 0 !important;
-  box-shadow: none !important;
-}
-
+.detailsBtn:focus,
+.detailsBtn:focus-visible,
 .detailsBtn:active {
-  background: #84cc16 !important;
-  background-color: #84cc16 !important;
-  border: 0 !important;
-  outline: 0 !important;
+  border: none !important;
+  outline: none !important;
   box-shadow: none !important;
 }
 
 .detailsBtn::-moz-focus-inner {
   border: 0 !important;
-  padding: 0 !important;
 }
 
-/* Order Details Modal */
 .detailsModalOverlay {
   position: fixed;
   inset: 0;
@@ -349,27 +292,15 @@
 }
 
 .closeDetailsBtn {
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
   color: rgb(219, 255, 148);
   font-size: 2rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-}
-
-.closeDetailsBtn:hover,
-.closeDetailsBtn:focus,
-.closeDetailsBtn:focus-visible,
-.closeDetailsBtn:active {
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
 }
 
 .detailsSection {
@@ -454,35 +385,19 @@
 
 .closeDetailsButton {
   width: 100%;
-  background: #84cc16 !important;
-  background-color: #84cc16 !important;
-  color: #0d1f12 !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
+  background-color: #84cc16;
+  color: #0d1f12;
+  border: none;
+  outline: none;
+  box-shadow: none;
   padding: 0.7rem 1rem;
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  appearance: none !important;
-  -webkit-appearance: none !important;
 }
 
 .closeDetailsButton:hover {
-  background: #adcc14 !important;
-  background-color: #adcc14 !important;
-}
-
-.closeDetailsButton:focus,
-.closeDetailsButton:focus-visible,
-.closeDetailsButton:active {
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.closeDetailsButton::-moz-focus-inner {
-  border: 0 !important;
+  background-color: #adcc14;
 }
 
 /* Cancel Order Modal */
@@ -538,13 +453,6 @@
   background-color: #dc2626;
 }
 
-.confirmCancelBtn:focus,
-.confirmCancelBtn:focus-visible,
-.confirmCancelBtn:active {
-  outline: none;
-  box-shadow: none;
-}
-
 .closeCancelBtn {
   background-color: transparent;
   color: rgb(219, 255, 148);
@@ -553,17 +461,6 @@
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.closeCancelBtn:hover {
-  background-color: rgba(219, 255, 148, 0.1);
-}
-
-.closeCancelBtn:focus,
-.closeCancelBtn:focus-visible,
-.closeCancelBtn:active {
-  outline: none;
-  box-shadow: none;
 }
 
 /* Desktop */
@@ -652,3 +549,6 @@
     width: 100%;
   }
 }
+
+
+
