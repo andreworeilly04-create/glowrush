@@ -2,16 +2,14 @@
   max-width: 800px;
   margin: 0 auto;
   background-color: #0d1f12;
-  color: #f0fdf4;
   padding: 2rem 1rem;
   min-height: 100vh;
-  box-sizing: border-box;
 }
 
 .title {
+  color: #adcc14;
   font-size: 1.75rem;
   margin-bottom: 1.5rem;
-  color: #adcc14;
 }
 
 .ordersList {
@@ -21,21 +19,14 @@
 }
 
 .orderCard {
-  background-color: #132e1b;
+  background-color: #122b19;
   border: 1px solid #1f4a2d;
   border-radius: 8px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-}
-
-@media (min-width: 600px) {
-  .orderCard {
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-  }
+  gap: 1.5rem;
+  min-width: 0;
 }
 
 .orderLeft {
@@ -46,13 +37,16 @@
   flex: 1;
 }
 
-@media (min-width: 600px) {
-  .orderLeft {
-    align-items: center;
-  }
+.productImg {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  background-color: #1f4a2d;
+  flex-shrink: 0;
 }
 
-.productImg {
+.noImage {
   width: 80px;
   height: 80px;
   background-color: #1f4a2d;
@@ -62,45 +56,41 @@
   justify-content: center;
   color: #84cc16;
   font-size: 0.75rem;
-  text-align: center;
   flex-shrink: 0;
-  padding: 0.25rem;
-  object-fit: cover;
 }
 
-.orderDetails {
+.itemInfo {
   min-width: 0;
   flex: 1;
 }
 
-.orderDetails h3 {
+.itemInfo h3 {
+  color: yellowgreen;
+  margin: 0 0 0.5rem;
   font-size: 1rem;
-  margin-bottom: 0.35rem;
-  color: #f0fdf4;
   word-break: break-word;
-  overflow-wrap: break-word;
 }
 
 .orderDate {
-  margin: 0 0 0.5rem 0;
   color: rgb(219, 255, 148);
+  margin: 0 0 0.5rem;
   font-size: 0.9rem;
 }
 
 .orderDate span {
   color: yellowgreen;
-  font-weight: 600;
 }
 
 .statusBadge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
   background-color: rgba(132, 204, 22, 0.15);
   color: #adcc14;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
   font-weight: 600;
-  border: 1px solid rgba(132, 204, 22, 0.3);
 }
 
 .statusBadgeNoWrap {
@@ -110,178 +100,125 @@
 .orderRight {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-@media (min-width: 600px) {
-  .orderRight {
-    align-items: flex-end;
-  }
+  gap: 1rem;
+  width: 100%;
 }
 
 .priceInfo {
-  font-size: 0.9rem;
   color: rgb(219, 255, 148);
-  text-align: left;
-}
-
-@media (min-width: 600px) {
-  .priceInfo {
-    text-align: right;
-  }
+  font-weight: 600;
 }
 
 .priceInfo span {
-  font-weight: bold;
   color: #adcc14;
 }
 
 .buttonGroup {
   display: flex;
-  gap: 0.5rem;
   flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-/* =========================================================
-   TRACK ORDER BUTTON
-   ========================================================= */
-
 .trackBtn {
-  background-color: #adcc14;
+  background-color: #84cc16;
   color: #0d1f12;
-  border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  outline: none;
-  box-shadow: none;
   appearance: none;
   -webkit-appearance: none;
 }
 
 .trackBtn:hover {
-  background-color: #84cc16;
+  background-color: #adcc14;
 }
 
 .trackBtn:focus,
 .trackBtn:focus-visible,
 .trackBtn:active {
-  outline: none;
-  border: none;
-  box-shadow: none;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-/* =========================================================
-   CANCEL ORDER BUTTON
-   ========================================================= */
+.trackBtn::-moz-focus-inner {
+  border: 0 !important;
+}
 
 .cancelBtn {
   background-color: transparent;
-  color: #f87171;
-  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #ef4444;
   padding: 0.5rem 1rem;
+  border: 1px solid #ef4444;
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .cancelBtn:hover {
-  background-color: rgba(248, 113, 113, 0.15);
-  border-color: #f87171;
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
-/* =========================================================
-   EMPTY STATE
-   ========================================================= */
+.cancelBtn:focus,
+.cancelBtn:focus-visible,
+.cancelBtn:active {
+  outline: none;
+  box-shadow: none;
+}
 
 .emptyState {
   text-align: center;
-  padding: 4rem 1.5rem;
-  background-color: #132e1b;
-  border: 1px solid #1f4a2d;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.emptyState p {
-  color: yellowgreen;
-  font-size: 1.4rem;
-  margin: 0;
+  padding: 3rem 1rem;
+  color: rgb(219, 255, 148);
 }
 
 .shopGlowBtn {
-  background-color: #adcc14;
-  color: #000000;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  text-decoration: none;
   display: inline-block;
+  margin-top: 1rem;
+  background-color: #adcc14;
+  color: #0d1f12;
+  padding: 0.7rem 1.2rem;
+  border-radius: 5px;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .shopGlowBtn:hover {
-  background-color: green;
-  color: #ffffff;
+  background-color: #84cc16;
 }
-
-/* =========================================================
-   ORDER ITEMS
-   ========================================================= */
 
 .itemsContainer {
   width: 100%;
-  margin-top: 20px;
-  margin-bottom: 20px;
 }
 
 .orderItem {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 0;
+  gap: 1rem;
+  padding: 1rem 0;
+  min-width: 0;
+}
+
+.orderItem:first-child {
+  padding-top: 0;
+}
+
+.orderItem:last-child {
+  padding-bottom: 0;
 }
 
 .orderItemWithBorder {
   border-bottom: 1px solid rgb(219, 255, 148);
 }
 
-.noImage {
-  width: 80px;
-  height: 80px;
-  min-width: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 12px;
-  text-align: center;
-}
-
-.itemInfo {
-  flex: 1;
-}
-
-.itemInfo h3 {
-  margin: 0 0 6px 0;
-  color: yellowgreen;
-}
-
 .quantityText {
-  margin: 0 0 5px 0;
   color: rgb(219, 255, 148);
+  margin: 0.25rem 0;
 }
 
 .quantityText span {
@@ -289,8 +226,8 @@
 }
 
 .itemPrice {
-  margin: 0;
   color: rgb(219, 255, 148);
+  margin: 0.25rem 0;
 }
 
 .itemPrice span {
@@ -298,56 +235,90 @@
 }
 
 .itemDescription {
-  margin: 6px 0 0 0;
-  font-size: 14px;
   color: rgb(219, 255, 148);
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
-/* =========================================================
-   VIEW ORDER DETAILS BUTTON
-   ========================================================= */
-
+/* View Order Details button */
 .detailsBtn {
-  background-color: #adcc14;
-  color: #0d1f12;
+  background: #adcc14 !important;
+  background-color: #adcc14 !important;
+  color: #0d1f12 !important;
+
   padding: 0.5rem 1rem;
   border-radius: 4px;
+
+  border: 0 !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+
+  outline: 0 !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+
+  box-shadow: none !important;
+
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  outline: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  appearance: none;
-  -webkit-appearance: none;
+
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+
+  text-decoration: none !important;
 }
 
 .detailsBtn:hover {
-  background-color: #84cc16;
-}
-
-.detailsBtn:focus,
-.detailsBtn:focus-visible,
-.detailsBtn:active {
-  outline: none !important;
+  background: #84cc16 !important;
+  background-color: #84cc16 !important;
   border: 0 !important;
+  outline: 0 !important;
   box-shadow: none !important;
 }
 
-/* =========================================================
-   ORDER DETAILS MODAL
-   ========================================================= */
+.detailsBtn:focus {
+  background: #adcc14 !important;
+  background-color: #adcc14 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
 
+.detailsBtn:focus-visible {
+  background: #adcc14 !important;
+  background-color: #adcc14 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.detailsBtn:active {
+  background: #84cc16 !important;
+  background-color: #84cc16 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.detailsBtn::-moz-focus-inner {
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+/* Order Details Modal */
 .detailsModalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
   padding: 1rem;
-  box-sizing: border-box;
+  z-index: 1000;
 }
 
 .detailsModal {
@@ -355,51 +326,50 @@
   max-width: 550px;
   max-height: 90vh;
   overflow-y: auto;
-  background-color: #132e1b;
+  background-color: #122b19;
   border: 1px solid rgb(219, 255, 148);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 1.5rem;
-  box-sizing: border-box;
+  color: rgb(219, 255, 148);
 }
 
 .detailsHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  border-bottom: 1px solid rgb(219, 255, 148);
   padding-bottom: 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgb(219, 255, 148);
 }
 
 .detailsHeader h2 {
-  margin: 0;
   color: rgb(219, 255, 148);
-  font-size: 1.35rem;
+  margin: 0;
+  font-size: 1.4rem;
 }
 
 .closeDetailsBtn {
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   color: rgb(219, 255, 148);
   font-size: 2rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;
-  outline: none;
-  box-shadow: none;
+  appearance: none !important;
+  -webkit-appearance: none !important;
 }
 
-.closeDetailsBtn:hover {
-  color: white;
-}
-
+.closeDetailsBtn:hover,
 .closeDetailsBtn:focus,
 .closeDetailsBtn:focus-visible,
 .closeDetailsBtn:active {
-  outline: none;
-  border: none;
-  box-shadow: none;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .detailsSection {
@@ -407,17 +377,14 @@
 }
 
 .detailsSection h3 {
-  margin: 0 0 1rem 0;
   color: rgb(219, 255, 148);
-  font-size: 1rem;
-  border-bottom: 1px solid #1f4a2d;
-  padding-bottom: 0.5rem;
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
 }
 
 .detailsRow {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 1rem;
   padding: 0.5rem 0;
   color: rgb(219, 255, 148);
@@ -431,23 +398,18 @@
 .shippingAddress {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 1rem;
   padding: 0.5rem 0;
   color: rgb(219, 255, 148);
 }
 
 .shippingAddress > div {
-  color: yellowgreen;
   text-align: right;
+  color: yellowgreen;
 }
 
 .shippingAddress p {
-  margin: 0 0 0.2rem 0;
-}
-
-.shippingAddress p:last-child {
-  margin-bottom: 0;
+  margin: 0 0 0.25rem;
 }
 
 .detailsProduct {
@@ -456,7 +418,7 @@
   gap: 1rem;
   padding: 0.6rem 0;
   color: rgb(219, 255, 148);
-  border-bottom: 1px solid #1f4a2d;
+  border-bottom: 1px solid rgba(219, 255, 148, 0.25);
 }
 
 .detailsProduct strong {
@@ -467,8 +429,7 @@
 .detailsTotalRow {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.4rem 0;
+  padding: 0.5rem 0;
   color: rgb(219, 255, 148);
 }
 
@@ -479,13 +440,12 @@
 .detailsGrandTotal {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
   border-top: 1px solid rgb(219, 255, 148);
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
   color: rgb(219, 255, 148);
+  font-weight: 700;
   font-size: 1.1rem;
-  font-weight: bold;
 }
 
 .detailsGrandTotal strong {
@@ -494,160 +454,174 @@
 
 .closeDetailsButton {
   width: 100%;
-  background-color: #adcc14;
-  color: #0d1f12;
-  border: none;
+  background: #84cc16 !important;
+  background-color: #84cc16 !important;
+  color: #0d1f12 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   padding: 0.7rem 1rem;
-  border-radius: 5px;
+  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 0.5rem;
-  outline: none;
-  box-shadow: none;
-  appearance: none;
-  -webkit-appearance: none;
+  appearance: none !important;
+  -webkit-appearance: none !important;
 }
 
 .closeDetailsButton:hover {
-  background-color: #84cc16;
+  background: #adcc14 !important;
+  background-color: #adcc14 !important;
 }
 
 .closeDetailsButton:focus,
 .closeDetailsButton:focus-visible,
 .closeDetailsButton:active {
-  outline: none;
-  border: none;
-  box-shadow: none;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
-/* =========================================================
-   CANCEL CONFIRMATION MODAL
-   ========================================================= */
+.closeDetailsButton::-moz-focus-inner {
+  border: 0 !important;
+}
 
+/* Cancel Order Modal */
 .cancelModalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
   padding: 1rem;
-  box-sizing: border-box;
+  z-index: 1000;
 }
 
 .cancelModal {
   width: 100%;
-  max-width: 400px;
-  background-color: #132e1b;
+  max-width: 450px;
+  background-color: #122b19;
   border: 1px solid rgb(219, 255, 148);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 1.5rem;
-  box-sizing: border-box;
-  text-align: center;
+  color: rgb(219, 255, 148);
 }
 
 .cancelModal h2 {
-  margin: 0 0 0.75rem 0;
   color: rgb(219, 255, 148);
-  font-size: 1.25rem;
+  margin-top: 0;
 }
 
 .cancelModal p {
-  margin: 0 0 1.5rem 0;
-  color: #f0fdf4;
-  font-size: 0.95rem;
+  color: rgb(219, 255, 148);
   line-height: 1.5;
 }
 
 .cancelModalButtons {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 0.75rem;
-  flex-wrap: wrap;
+  margin-top: 1.5rem;
 }
 
 .confirmCancelBtn {
-  background-color: #f87171;
-  color: #ffffff;
+  background-color: #ef4444;
+  color: white;
   border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 5px;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  min-width: 130px;
-  outline: none;
-  box-shadow: none;
 }
 
 .confirmCancelBtn:hover {
-  background-color: #ef4444;
+  background-color: #dc2626;
 }
 
 .confirmCancelBtn:focus,
 .confirmCancelBtn:focus-visible,
 .confirmCancelBtn:active {
   outline: none;
-  border: none;
   box-shadow: none;
 }
 
-.keepOrderBtn {
+.closeCancelBtn {
   background-color: transparent;
   color: rgb(219, 255, 148);
   border: 1px solid rgb(219, 255, 148);
-  padding: 0.6rem 1.2rem;
-  border-radius: 5px;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
-  min-width: 130px;
-  outline: none;
-  box-shadow: none;
 }
 
-.keepOrderBtn:hover {
+.closeCancelBtn:hover {
   background-color: rgba(219, 255, 148, 0.1);
 }
 
-.keepOrderBtn:focus,
-.keepOrderBtn:focus-visible,
-.keepOrderBtn:active {
+.closeCancelBtn:focus,
+.closeCancelBtn:focus-visible,
+.closeCancelBtn:active {
   outline: none;
   box-shadow: none;
 }
 
-/* =========================================================
-   MOBILE RESPONSIVENESS
-   ========================================================= */
-
-@media (max-width: 480px) {
-  .cancelModal {
-    max-width: 100%;
-    padding: 1.25rem;
-  }
-
-  .cancelModal h2 {
-    font-size: 1.1rem;
-  }
-
-  .cancelModal p {
-    font-size: 0.9rem;
-  }
-
-  .cancelModalButtons {
+/* Desktop */
+@media (min-width: 600px) {
+  .orderCard {
     flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .orderLeft {
+    align-items: center;
+  }
+
+  .orderRight {
+    align-items: flex-end;
+  }
+
+  .buttonGroup {
+    justify-content: flex-end;
+  }
+}
+
+/* Mobile */
+@media (max-width: 599px) {
+  .container {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .orderCard {
+    padding: 1rem;
+  }
+
+  .orderLeft {
+    gap: 0.75rem;
+  }
+
+  .productImg,
+  .noImage {
+    width: 65px;
+    height: 65px;
+  }
+
+  .orderRight {
     width: 100%;
   }
 
-  .confirmCancelBtn,
-  .keepOrderBtn {
+  .buttonGroup {
     width: 100%;
+  }
+
+  .buttonGroup button {
+    flex: 1;
+    min-width: 0;
   }
 
   .detailsModal {
-    max-width: 100%;
-    max-height: 92vh;
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .detailsRow,
@@ -665,5 +639,16 @@
     flex-direction: column;
     gap: 0.25rem;
   }
-}
 
+  .detailsProduct strong {
+    text-align: left;
+  }
+
+  .cancelModalButtons {
+    flex-direction: column;
+  }
+
+  .cancelModalButtons button {
+    width: 100%;
+  }
+}
