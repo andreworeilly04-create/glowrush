@@ -292,8 +292,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  outline:none;
-  border:none;
+  outline:none !important;
+  border:none !important;
 }
 
 .detailsBtn:hover {
