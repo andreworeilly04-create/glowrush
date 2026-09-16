@@ -281,6 +281,189 @@
 }
 
 /* =========================================================
+   VIEW ORDER DETAILS BUTTON
+   ========================================================= */
+
+.detailsBtn {
+  background-color: transparent;
+  color: rgb(219, 255, 148);
+  border: 1px solid rgb(219, 255, 148);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detailsBtn:hover {
+  background-color: rgba(219, 255, 148, 0.1);
+}
+
+/* =========================================================
+   ORDER DETAILS MODAL
+   ========================================================= */
+
+.detailsModalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.detailsModal {
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: #132e1b;
+  border: 1px solid rgb(219, 255, 148);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.detailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgb(219, 255, 148);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.detailsHeader h2 {
+  margin: 0;
+  color: rgb(219, 255, 148);
+  font-size: 1.35rem;
+}
+
+.closeDetailsBtn {
+  background: transparent;
+  border: none;
+  color: rgb(219, 255, 148);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.closeDetailsBtn:hover {
+  color: white;
+}
+
+.detailsSection {
+  margin-bottom: 1.5rem;
+}
+
+.detailsSection h3 {
+  margin: 0 0 1rem 0;
+  color: rgb(219, 255, 148);
+  font-size: 1rem;
+  border-bottom: 1px solid #1f4a2d;
+  padding-bottom: 0.5rem;
+}
+
+.detailsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  color: rgb(219, 255, 148);
+}
+
+.detailsRow strong {
+  color: yellowgreen;
+  text-align: right;
+}
+
+.shippingAddress {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  color: rgb(219, 255, 148);
+}
+
+.shippingAddress > div {
+  color: yellowgreen;
+  text-align: right;
+}
+
+.shippingAddress p {
+  margin: 0 0 0.2rem 0;
+}
+
+.shippingAddress p:last-child {
+  margin-bottom: 0;
+}
+
+.detailsProduct {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  color: rgb(219, 255, 148);
+  border-bottom: 1px solid #1f4a2d;
+}
+
+.detailsProduct strong {
+  color: yellowgreen;
+  white-space: nowrap;
+}
+
+.detailsTotalRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0;
+  color: rgb(219, 255, 148);
+}
+
+.detailsTotalRow strong {
+  color: yellowgreen;
+}
+
+.detailsGrandTotal {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgb(219, 255, 148);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  color: rgb(219, 255, 148);
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.detailsGrandTotal strong {
+  color: yellowgreen;
+}
+
+.closeDetailsButton {
+  width: 100%;
+  background-color: #adcc14;
+  color: #0d1f12;
+  border: none;
+  padding: 0.7rem 1rem;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.closeDetailsButton:hover {
+  background-color: #84cc16;
+}
+
+/* =========================================================
    CANCEL CONFIRMATION MODAL
    ========================================================= */
 
@@ -357,6 +540,10 @@
   background-color: rgba(219, 255, 148, 0.1);
 }
 
+/* =========================================================
+   MOBILE RESPONSIVENESS
+   ========================================================= */
+
 @media (max-width: 480px) {
   .cancelModal {
     max-width: 100%;
@@ -380,6 +567,26 @@
   .keepOrderBtn {
     width: 100%;
   }
+
+  .detailsModal {
+    max-width: 100%;
+    max-height: 92vh;
+    padding: 1.25rem;
+  }
+
+  .detailsRow,
+  .shippingAddress {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .detailsRow strong,
+  .shippingAddress > div {
+    text-align: left;
+  }
+
+  .detailsProduct {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }
-
-

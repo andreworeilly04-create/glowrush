@@ -1,9 +1,10 @@
+
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
-import styles from "./page.orders.module.css";
+import Image from "next/image";
 import Link from "next/link";
+import styles from "./page.orders.module.css";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/db";
 
@@ -25,6 +26,98 @@ type Order = {
   tax: string;
   total: string;
   createdAt: any;
+  shippingAddress?: any;
+  shippingTime?: string;
+  estimatedDelivery?: string;
+};
+
+const getImageUrl = (image: any): string => {
+  if (!image) return "";
+
+  if (typeof image === "string") {
+    return image;
+  }
+
+  if (typeof image === "object") {
+    if (typeof image.src === "string") return image.src;
+    if (typeof image.default?.src === "string") return image.default.src;
+    if (typeof image.url === "string") return image.url;
+    if (typeof image.default?.url === "string") return image.default.url;
+  }
+
+  return "";
+};
+
+const formatShippingAddress = (address: any) => {
+  if (!address) {
+    return null;
+  }
+
+  if (typeof address === "string") {
+    return {
+      line1: address,
+      line2: "",
+      city: "",
+      state: "",
+      zip: "",
+    };
+  }
+
+  return {
+    line1:
+      address.line1 ||
+      address.address ||
+      address.street ||
+      address.addressLine1 ||
+      "",
+    line2:
+      address.line2 ||
+      address.apartment ||
+      address.unit ||
+      address.addressLine2 ||
+      "",
+    city: address.city || "",
+    state: address.state || address.province || "",
+    zip:
+      address.zip ||
+      address.zipCode ||
+      address.postalCode ||
+      "",
+  };
+};
+
+const formatOrderDate = (createdAt: any): string => {
+  if (!createdAt) return "Date unavailable";
+
+  try {
+    let date: Date;
+
+    if (
+      typeof createdAt === "object" &&
+      typeof createdAt.toDate === "function"
+    ) {
+      date = createdAt.toDate();
+    } else if (
+      typeof createdAt === "object" &&
+      typeof createdAt.seconds === "number"
+    ) {
+      date = new Date(createdAt.seconds * 1000);
+    } else {
+      date = new Date(createdAt);
+    }
+
+    if (isNaN(date.getTime())) {
+      return "Date unavailable";
+    }
+
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return "Date unavailable";
+  }
 };
 
 export default function OrdersPage() {
@@ -32,128 +125,30 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [trackingOrder, setTrackingOrder] = useState<string | null>(null);
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const getImageUrl = (image: any): string => {
-    if (!image) {
-      return "";
-    }
-
-    if (typeof image === "string") {
-      return image.trim();
-    }
-
-    if (typeof image === "object" && image !== null) {
-      if (typeof image.src === "string" && image.src.trim() !== "") {
-        return image.src.trim();
-      }
-
-      if (
-        typeof image.default?.src === "string" &&
-        image.default.src.trim() !== ""
-      ) {
-        return image.default.src.trim();
-      }
-
-      if (typeof image.url === "string" && image.url.trim() !== "") {
-        return image.url.trim();
-      }
-
-      if (
-        typeof image.default?.url === "string" &&
-        image.default.url.trim() !== ""
-      ) {
-        return image.default.url.trim();
-      }
-    }
-
-    return "";
-  };
-
-  const formatOrders = (databaseOrders: any[]): Order[] => {
-    console.log("======================================");
-    console.log("🔎 ORDERS DEBUG: formatOrders received");
-    console.log("Number of database orders:", databaseOrders.length);
-    console.log("======================================");
-
-    return databaseOrders.map((order: any) => {
-      let rawItems: any[] = [];
+  const formatOrders = (rawOrders: any[]): Order[] => {
+    return rawOrders.map((order: any) => {
+      let parsedItems: any[] = [];
 
       try {
         if (Array.isArray(order.items)) {
-          rawItems = order.items;
-        } else if (
-          typeof order.items === "string" &&
-          order.items.trim() !== ""
-        ) {
-          const parsed = JSON.parse(order.items);
-
-          if (Array.isArray(parsed)) {
-            rawItems = parsed;
-          }
+          parsedItems = order.items;
+        } else if (typeof order.items === "string") {
+          parsedItems = JSON.parse(order.items);
         }
       } catch (error) {
-        console.error("❌ Orders - failed to parse items:", error);
+        console.error("Could not parse order items:", error);
+        parsedItems = [];
       }
 
-      console.log("📦 Raw order items:", rawItems);
-
-      const items: OrderItem[] = rawItems.map((item: any) => {
-        const image = getImageUrl(item?.image);
-        const quantity = Number(item?.quantity) || 1;
-        const price = Number(item?.price) || 0;
-
-        console.log("🖼️ PRODUCT IMAGE DEBUG:", {
-          orderId: order.id,
-          productName: item?.name,
-          originalImage: item?.image,
-          image,
-          imageType: typeof item?.image,
-          quantity,
-          price,
-        });
-
-        if (!image) {
-          console.warn(
-            "⚠️ NO PRODUCT IMAGE FOUND FOR:",
-            item?.name || "Unknown Product"
-          );
-        }
-
-        return {
-          name: item?.name || "Glow Stick",
-          image,
-          quantity,
-          price,
-          description: item?.description || "",
-        };
-      });
-
-      if (items.length === 0 && order?.image) {
-        const fallbackImage = getImageUrl(order.image);
-
-        if (fallbackImage) {
-          items.push({
-            name: "GlowRush Order",
-            image: fallbackImage,
-            quantity: 1,
-            price: Number(order?.price) || 0,
-            description: "",
-          });
-        }
-      }
-
-      console.log("📦 Formatting order:", {
-        id: order.id,
-        user_id: order.user_id,
-        items,
-        paymentStatus: order.paymentStatus,
-        status: order.status,
-        price: order.price,
-        shipping: order.shipping,
-        tax: order.tax,
-        total: order.total,
-        createdAt: order.createdAt,
-      });
+      const items: OrderItem[] = parsedItems.map((item: any) => ({
+        name: item.name || "GlowRush Product",
+        image: getImageUrl(item.image || item.img || item.src),
+        quantity: Number(item.quantity || 0),
+        price: Number(item.price || 0),
+        description: item.description || "",
+      }));
 
       return {
         id: `ORD-${order.id}`,
@@ -165,120 +160,64 @@ export default function OrdersPage() {
         tax: `$${Number(order.tax || 0).toFixed(2)}`,
         total: `$${Number(order.total || 0).toFixed(2)}`,
         createdAt: order.createdAt,
+        shippingAddress: order.shippingAddress || null,
+        shippingTime: order.shippingTime || "3–5 business days",
+        estimatedDelivery:
+          order.estimatedDelivery ||
+          "3–5 business days after shipment",
       };
     });
   };
 
   const loadOrders = async (firebaseUser: any) => {
+    if (!firebaseUser) {
+      console.error("Orders page cannot load orders because no user ID was found.");
+      setOrders([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      console.log("======================================");
-      console.log("🔎 ORDERS DEBUG: START");
-      console.log("======================================");
-
-      console.log("🔎 Firebase user object:", firebaseUser);
-
-      if (!firebaseUser) {
-        console.error("❌ firebaseUser is NULL/UNDEFINED");
-        setOrders([]);
-        return;
-      }
-
-      console.log("✅ Firebase user exists");
-      console.log("🔎 Firebase UID:", firebaseUser.uid);
-      console.log("🔎 Firebase email:", firebaseUser.email);
+      setLoading(true);
 
       const userId = firebaseUser.uid;
 
       if (!userId) {
-        console.error("❌ Firebase user has NO UID");
+        console.error("Orders page cannot load orders because no user ID was found.");
         setOrders([]);
         return;
       }
-
-      console.log("✅ UID exists:", userId);
-      console.log("🔎 Requesting Firebase ID token...");
 
       const token = await firebaseUser.getIdToken(true);
 
-      if (!token) {
-        console.error("❌ Firebase ID token is EMPTY");
-        setOrders([]);
-        return;
-      }
-
-      console.log("✅ Firebase ID token received");
-
-      const apiUrl = `/api/orders/get?user_id=${encodeURIComponent(userId)}`;
-
-      console.log("🔎 ORDERS API URL:", apiUrl);
-      console.log("🔎 user_id being sent:", userId);
-
-      const response = await fetch(apiUrl, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        cache: "no-store",
-      });
-
-      console.log("🔎 Orders API HTTP status:", response.status);
-
-      const responseText = await response.text();
-
-      console.log("🔎 RAW ORDERS API RESPONSE:", responseText);
-
-      let data: any = {};
-
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch (error) {
-        console.error("❌ Orders API returned INVALID JSON");
-        setOrders([]);
-        return;
-      }
-
-      console.log("✅ Parsed Orders API response:", data);
+      const response = await fetch(
+        `/api/orders/get?user_id=${encodeURIComponent(userId)}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "no-store",
+        }
+      );
 
       if (!response.ok) {
-        console.error("❌ ORDERS API ERROR:", data?.error);
-        setOrders([]);
-        return;
+        throw new Error(`Failed to fetch orders: ${response.status}`);
       }
 
-      if (!data.success) {
-        console.error("❌ ORDERS API success=false:", data?.error);
-        setOrders([]);
-        return;
-      }
+      const data = await response.json();
 
-      const databaseOrders = Array.isArray(data.orders)
+      console.log("Orders API response:", data);
+
+      const rawOrders = Array.isArray(data)
+        ? data
+        : Array.isArray(data.orders)
         ? data.orders
         : [];
 
-      console.log("======================================");
-      console.log("📦 FIRESTORE ORDERS RECEIVED");
-      console.log("Number of orders:", databaseOrders.length);
-      console.log("Full orders:", databaseOrders);
-      console.log("======================================");
-
-      databaseOrders.forEach((order: any, index: number) => {
-        console.log(`📦 ORDER ${index + 1}`);
-        console.log("Document ID:", order.id);
-        console.log("Stored user_id:", order.user_id);
-        console.log("Payment status:", order.paymentStatus);
-        console.log("Status:", order.status);
-        console.log("Items:", order.items);
-      });
-
-      const paidOrders = databaseOrders.filter((order: any) => {
-        const paymentStatus = String(order.paymentStatus || "")
-          .trim()
-          .toLowerCase();
-
-        return paymentStatus === "paid";
-      });
-
-      console.log("💳 PAID ORDERS:", paidOrders.length);
+      const paidOrders = rawOrders.filter(
+        (order: any) => order.paymentStatus === "paid"
+      );
 
       paidOrders.sort((a: any, b: any) => {
         const dateA = new Date(a.createdAt || 0).getTime();
@@ -289,89 +228,66 @@ export default function OrdersPage() {
 
       const formattedOrders = formatOrders(paidOrders);
 
-      console.log("======================================");
-      console.log("✅ FORMATTED ORDERS:", formattedOrders);
-      console.log("======================================");
-
       setOrders(formattedOrders);
-
-      console.log("✅ Orders state updated");
-    } catch (error: any) {
-      console.error("======================================");
-      console.error("❌ ORDERS LOAD CRASHED");
-      console.error(error);
-      console.error(error?.message);
-      console.error("======================================");
-
+    } catch (error) {
+      console.error("Error loading orders:", error);
       setOrders([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    console.log("🔎 Orders - waiting for Firebase authentication...");
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      try {
-        if (!firebaseUser) {
-          console.warn("⚠️ No Firebase user is signed in.");
-
-          setOrders([]);
-          setLoading(false);
-
-          return;
-        }
-
-        console.log("✅ FIREBASE USER AUTHENTICATED");
-        console.log("Firebase UID:", firebaseUser.uid);
-
-        await loadOrders(firebaseUser);
-      } catch (error) {
-        console.error("❌ Authentication error:", error);
-
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        loadOrders(firebaseUser);
+      } else {
+        console.error("No Firebase user is currently signed in.");
         setOrders([]);
-      } finally {
         setLoading(false);
       }
     });
 
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   const trackOrder = async (orderId: string) => {
     try {
       setTrackingOrder(orderId);
 
-      const firebaseUser = auth.currentUser;
+      const currentUser = auth.currentUser;
 
-      if (!firebaseUser) {
-        console.error("❌ Cannot track order: no Firebase user.");
+      if (!currentUser) {
+        console.error("No Firebase user is currently signed in.");
         return;
       }
 
-      await loadOrders(firebaseUser);
+      await loadOrders(currentUser);
     } catch (error) {
-      console.error("❌ Failed to refresh orders:", error);
+      console.error("Error tracking order:", error);
     } finally {
       setTrackingOrder(null);
     }
   };
 
-  const handleCancelOrder = async (orderId: string) => {
+  const handleCancelOrder = async () => {
+    if (!cancelOrderId) return;
+
     try {
-      const firestoreId = orderId.startsWith("ORD-")
-        ? orderId.substring(4)
-        : orderId;
+      const currentUser = auth.currentUser;
 
-      const firebaseUser = auth.currentUser;
-
-      if (!firebaseUser) {
-        console.error("❌ Cannot cancel order: no Firebase user.");
+      if (!currentUser) {
+        console.error("No Firebase user is currently signed in.");
         return;
       }
 
-      const token = await firebaseUser.getIdToken(true);
+      const token = await currentUser.getIdToken(true);
+
+      let orderId = cancelOrderId;
+
+      if (orderId.startsWith("ORD-")) {
+        orderId = orderId.substring(4);
+      }
 
       const response = await fetch("/api/orders/delete", {
         method: "POST",
@@ -380,89 +296,53 @@ export default function OrdersPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          id: firestoreId,
+          id: orderId,
         }),
       });
 
-      const text = await response.text();
-
-      let data: any = {};
-
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        console.error("❌ Invalid delete response:", text);
-        return;
-      }
+      const data = await response.json();
 
       if (data.success) {
         setOrders((previousOrders) =>
-          previousOrders.filter((order) => order.id !== orderId)
+          previousOrders.filter((order) => order.id !== cancelOrderId)
         );
       } else {
-        console.error("❌ Failed to cancel order:", data?.error);
+        console.error("Failed to cancel order:", data);
       }
     } catch (error) {
-      console.error("❌ Cancel order error:", error);
+      console.error("Error cancelling order:", error);
+    } finally {
+      setCancelOrderId(null);
     }
   };
 
-  const formatOrderDate = (createdAt: any): string => {
-    if (!createdAt) {
-      return "Date unavailable";
-    }
-
-    try {
-      let date: Date;
-
-      if (
-        typeof createdAt === "object" &&
-        typeof createdAt.toDate === "function"
-      ) {
-        date = createdAt.toDate();
-      } else if (
-        typeof createdAt === "object" &&
-        typeof createdAt.seconds === "number"
-      ) {
-        date = new Date(createdAt.seconds * 1000);
-      } else {
-        date = new Date(createdAt);
-      }
-
-      if (isNaN(date.getTime())) {
-        return "Date unavailable";
-      }
-
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch {
-      return "Date unavailable";
-    }
-  };
-
-  return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Your Orders</h1>
-
-      {loading ? (
+  if (loading) {
+    return (
+      <main className={styles.container}>
+        <h1 className={styles.title}>My Orders</h1>
         <div className={styles.emptyState}>
           <p>Loading orders...</p>
         </div>
-      ) : orders.length === 0 ? (
+      </main>
+    );
+  }
+
+  return (
+    <main className={styles.container}>
+      <h1 className={styles.title}>My Orders</h1>
+
+      {orders.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No orders found.</p>
+          <p>No completed orders found.</p>
 
           <Link href="/glowsticks" className={styles.shopGlowBtn}>
-            Shop Glow Sticks
+            Shop GlowSticks
           </Link>
         </div>
       ) : (
         <div className={styles.ordersList}>
           {orders.map((order) => (
-            <div key={order.id} className={styles.orderCard}>
+            <div className={styles.orderCard} key={order.id}>
               <div className={styles.orderLeft}>
                 <div className={styles.orderDetails}>
                   <p className={styles.orderDate}>
@@ -491,21 +371,11 @@ export default function OrdersPage() {
                     {item.image ? (
                       <Image
                         src={item.image}
+                        alt={item.name}
                         width={80}
                         height={80}
                         className={styles.productImg}
-                        alt={item.name}
                         unoptimized
-                        onError={() => {
-                          console.error(
-                            "❌ PRODUCT IMAGE FAILED TO LOAD:",
-                            {
-                              orderId: order.id,
-                              productName: item.name,
-                              image: item.image,
-                            }
-                          );
-                        }}
                       />
                     ) : (
                       <div className={styles.noImage}>
@@ -517,8 +387,7 @@ export default function OrdersPage() {
                       <h3>{item.name}</h3>
 
                       <p className={styles.quantityText}>
-                        Quantity:{" "}
-                        <span>{item.quantity}</span>
+                        Quantity: <span>{item.quantity}</span>
                       </p>
 
                       <p className={styles.itemPrice}>
@@ -540,34 +409,32 @@ export default function OrdersPage() {
 
               <div className={styles.orderRight}>
                 <div className={styles.priceInfo}>
-                  Price: <span>{order.price}</span>
-                </div>
-
-                <div className={styles.priceInfo}>
-                  Shipping: <span>{order.shipping}</span>
-                </div>
-
-                <div className={styles.priceInfo}>
-                  Tax: <span>{order.tax}</span>
-                </div>
-
-                <div className={styles.priceInfo}>
                   Total: <span>{order.total}</span>
                 </div>
 
                 <div className={styles.buttonGroup}>
                   <button
-                    onClick={() => trackOrder(order.id)}
+                    type="button"
+                    className={styles.detailsBtn}
+                    onClick={() => setSelectedOrder(order)}
+                  >
+                    View Order Details
+                  </button>
+
+                  <button
+                    type="button"
                     className={styles.trackBtn}
+                    onClick={() => trackOrder(order.id)}
                     disabled={trackingOrder === order.id}
                   >
                     {trackingOrder === order.id
-                      ? "Checking..."
+                      ? "Refreshing..."
                       : "Track Order"}
                   </button>
 
                   {order.status === "Paid / Processing" && (
                     <button
+                      type="button"
                       className={styles.cancelBtn}
                       onClick={() => setCancelOrderId(order.id)}
                     >
@@ -581,6 +448,163 @@ export default function OrdersPage() {
         </div>
       )}
 
+      {/* ORDER DETAILS MODAL */}
+      {selectedOrder && (
+        <div
+          className={styles.detailsModalOverlay}
+          onClick={() => setSelectedOrder(null)}
+        >
+          <div
+            className={styles.detailsModal}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.detailsHeader}>
+              <h2>Order Details</h2>
+
+              <button
+                type="button"
+                className={styles.closeDetailsBtn}
+                onClick={() => setSelectedOrder(null)}
+                aria-label="Close order details"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className={styles.detailsSection}>
+              <h3>Shipping Information</h3>
+
+              <div className={styles.detailsRow}>
+                <span>Order Date</span>
+                <strong>
+                  {formatOrderDate(selectedOrder.createdAt)}
+                </strong>
+              </div>
+
+              <div className={styles.detailsRow}>
+                <span>Status</span>
+                <strong>{selectedOrder.status}</strong>
+              </div>
+
+              <div className={styles.shippingAddress}>
+                <span>Shipping Address</span>
+
+                <div>
+                  {(() => {
+                    const address = formatShippingAddress(
+                      selectedOrder.shippingAddress
+                    );
+
+                    if (!address) {
+                      return <p>Address unavailable</p>;
+                    }
+
+                    return (
+                      <>
+                        {address.line1 && (
+                          <p>{address.line1}</p>
+                        )}
+
+                        {address.line2 && (
+                          <p>{address.line2}</p>
+                        )}
+
+                        {(address.city ||
+                          address.state ||
+                          address.zip) && (
+                          <p>
+                            {address.city}
+                            {address.city &&
+                            address.state
+                              ? ", "
+                              : ""}
+                            {address.state}
+                            {(address.city ||
+                              address.state) &&
+                            address.zip
+                              ? " "
+                              : ""}
+                            {address.zip}
+                          </p>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              <div className={styles.detailsRow}>
+                <span>Shipping Time</span>
+                <strong>
+                  {selectedOrder.shippingTime ||
+                    "3–5 business days"}
+                </strong>
+              </div>
+
+              <div className={styles.detailsRow}>
+                <span>Estimated Delivery</span>
+                <strong>
+                  {selectedOrder.estimatedDelivery ||
+                    "3–5 business days after shipment"}
+                </strong>
+              </div>
+            </div>
+
+            <div className={styles.detailsSection}>
+              <h3>Order Summary</h3>
+
+              {selectedOrder.items.map((item, index) => (
+                <div
+                  className={styles.detailsProduct}
+                  key={`${selectedOrder.id}-details-${index}`}
+                >
+                  <span>
+                    {item.name} × {item.quantity}
+                  </span>
+
+                  <strong>
+                    $
+                    {(
+                      Number(item.price || 0) *
+                      Number(item.quantity || 0)
+                    ).toFixed(2)}
+                  </strong>
+                </div>
+              ))}
+
+              <div className={styles.detailsTotalRow}>
+                <span>Subtotal</span>
+                <strong>{selectedOrder.price}</strong>
+              </div>
+
+              <div className={styles.detailsTotalRow}>
+                <span>Shipping</span>
+                <strong>{selectedOrder.shipping}</strong>
+              </div>
+
+              <div className={styles.detailsTotalRow}>
+                <span>Tax</span>
+                <strong>{selectedOrder.tax}</strong>
+              </div>
+
+              <div className={styles.detailsGrandTotal}>
+                <span>Total</span>
+                <strong>{selectedOrder.total}</strong>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className={styles.closeDetailsButton}
+              onClick={() => setSelectedOrder(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CANCEL CONFIRMATION MODAL */}
       {cancelOrderId && (
         <div
           className={styles.cancelModalOverlay}
@@ -593,36 +617,31 @@ export default function OrdersPage() {
             <h2>Cancel Order?</h2>
 
             <p>
-              Are you sure you want to cancel this order? Your payment
-              will be refunded to your original payment method.
+              Are you sure you want to cancel this order?
+              This action cannot be undone.
             </p>
 
             <div className={styles.cancelModalButtons}>
               <button
+                type="button"
+                className={styles.confirmCancelBtn}
+                onClick={handleCancelOrder}
+              >
+                Yes, Cancel Order
+              </button>
+
+              <button
+                type="button"
                 className={styles.keepOrderBtn}
                 onClick={() => setCancelOrderId(null)}
               >
                 Keep Order
               </button>
-
-              <button
-                className={styles.confirmCancelBtn}
-                onClick={async () => {
-                  const orderId = cancelOrderId;
-
-                  setCancelOrderId(null);
-
-                  await handleCancelOrder(orderId);
-                }}
-              >
-                Yes, Cancel Order
-              </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
-
 
