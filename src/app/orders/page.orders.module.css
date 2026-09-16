@@ -1,16 +1,17 @@
-
 .container {
   max-width: 800px;
   margin: 0 auto;
   background-color: #0d1f12;
+  color: #f0fdf4;
   padding: 2rem 1rem;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .title {
   font-size: 1.75rem;
-  color: #adcc14;
   margin-bottom: 1.5rem;
+  color: #adcc14;
 }
 
 .ordersList {
@@ -20,14 +21,21 @@
 }
 
 .orderCard {
-  background-color: #122b19;
+  background-color: #132e1b;
   border: 1px solid #1f4a2d;
   border-radius: 8px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  min-width: 0;
+  gap: 1.25rem;
+}
+
+@media (min-width: 600px) {
+  .orderCard {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
 }
 
 .orderLeft {
@@ -38,16 +46,13 @@
   flex: 1;
 }
 
-.productImg {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
-  background-color: #1f4a2d;
-  flex-shrink: 0;
+@media (min-width: 600px) {
+  .orderLeft {
+    align-items: center;
+  }
 }
 
-.noImage {
+.productImg {
   width: 80px;
   height: 80px;
   background-color: #1f4a2d;
@@ -57,41 +62,45 @@
   justify-content: center;
   color: #84cc16;
   font-size: 0.75rem;
+  text-align: center;
   flex-shrink: 0;
+  padding: 0.25rem;
+  object-fit: cover;
 }
 
-.itemInfo {
+.orderDetails {
   min-width: 0;
   flex: 1;
 }
 
-.itemInfo h3 {
-  color: yellowgreen;
-  margin: 0 0 0.5rem;
+.orderDetails h3 {
   font-size: 1rem;
+  margin-bottom: 0.35rem;
+  color: #f0fdf4;
   word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .orderDate {
+  margin: 0 0 0.5rem 0;
   color: rgb(219, 255, 148);
-  margin: 0 0 0.5rem;
   font-size: 0.9rem;
 }
 
 .orderDate span {
   color: yellowgreen;
+  font-weight: 600;
 }
 
 .statusBadge {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
+  display: inline-block;
   background-color: rgba(132, 204, 22, 0.15);
   color: #adcc14;
-  padding: 0.35rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.8rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
   font-weight: 600;
+  border: 1px solid rgba(132, 204, 22, 0.3);
 }
 
 .statusBadgeNoWrap {
@@ -101,102 +110,178 @@
 .orderRight {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  width: 100%;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 600px) {
+  .orderRight {
+    align-items: flex-end;
+  }
 }
 
 .priceInfo {
+  font-size: 0.9rem;
   color: rgb(219, 255, 148);
-  font-weight: 600;
+  text-align: left;
+}
+
+@media (min-width: 600px) {
+  .priceInfo {
+    text-align: right;
+  }
 }
 
 .priceInfo span {
+  font-weight: bold;
   color: #adcc14;
 }
 
 .buttonGroup {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
+/* =========================================================
+   TRACK ORDER BUTTON
+   ========================================================= */
+
 .trackBtn {
-  background-color: #84cc16;
+  background-color: #adcc14;
   color: #0d1f12;
+  border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
-  border: none;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .trackBtn:hover {
-  background-color: #adcc14;
-}
-
-.cancelBtn {
-  background-color: transparent;
-  color: #ef4444;
-  padding: 0.5rem 1rem;
-  border: 1px solid #ef4444;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.cancelBtn:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-}
-
-.emptyState {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: rgb(219, 255, 148);
-}
-
-.shopGlowBtn {
-  display: inline-block;
-  margin-top: 1rem;
-  background-color: #adcc14;
-  color: #0d1f12;
-  padding: 0.7rem 1.2rem;
-  border-radius: 5px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.shopGlowBtn:hover {
   background-color: #84cc16;
 }
 
+.trackBtn:focus,
+.trackBtn:focus-visible,
+.trackBtn:active {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* =========================================================
+   CANCEL ORDER BUTTON
+   ========================================================= */
+
+.cancelBtn {
+  background-color: transparent;
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn:hover {
+  background-color: rgba(248, 113, 113, 0.15);
+  border-color: #f87171;
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.emptyState {
+  text-align: center;
+  padding: 4rem 1.5rem;
+  background-color: #132e1b;
+  border: 1px solid #1f4a2d;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.emptyState p {
+  color: yellowgreen;
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.shopGlowBtn {
+  background-color: #adcc14;
+  color: #000000;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.shopGlowBtn:hover {
+  background-color: green;
+  color: #ffffff;
+}
+
+/* =========================================================
+   ORDER ITEMS
+   ========================================================= */
+
 .itemsContainer {
   width: 100%;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .orderItem {
   display: flex;
-  gap: 1rem;
-  padding: 1rem 0;
-  min-width: 0;
-}
-
-.orderItem:first-child {
-  padding-top: 0;
-}
-
-.orderItem:last-child {
-  padding-bottom: 0;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
 }
 
 .orderItemWithBorder {
   border-bottom: 1px solid rgb(219, 255, 148);
 }
 
+.noImage {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.itemInfo {
+  flex: 1;
+}
+
+.itemInfo h3 {
+  margin: 0 0 6px 0;
+  color: yellowgreen;
+}
+
 .quantityText {
+  margin: 0 0 5px 0;
   color: rgb(219, 255, 148);
-  margin: 0.25rem 0;
 }
 
 .quantityText span {
@@ -204,8 +289,8 @@
 }
 
 .itemPrice {
+  margin: 0;
   color: rgb(219, 255, 148);
-  margin: 0.25rem 0;
 }
 
 .itemPrice span {
@@ -213,13 +298,15 @@
 }
 
 .itemDescription {
+  margin: 6px 0 0 0;
+  font-size: 14px;
   color: rgb(219, 255, 148);
-  margin: 0.4rem 0 0;
-  font-size: 0.85rem;
-  line-height: 1.4;
 }
 
-/* View Order Details */
+/* =========================================================
+   VIEW ORDER DETAILS BUTTON
+   ========================================================= */
+
 .detailsBtn {
   background-color: #adcc14;
   color: #0d1f12;
@@ -228,10 +315,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease;
-
-  /* Only added to remove the white browser/global border */
-  border: none !important;
   outline: none !important;
+  border: 0 !important;
   box-shadow: none !important;
   appearance: none;
   -webkit-appearance: none;
@@ -244,24 +329,25 @@
 .detailsBtn:focus,
 .detailsBtn:focus-visible,
 .detailsBtn:active {
-  border: none !important;
   outline: none !important;
+  border: 0 !important;
   box-shadow: none !important;
 }
 
-.detailsBtn::-moz-focus-inner {
-  border: 0 !important;
-}
+/* =========================================================
+   ORDER DETAILS MODAL
+   ========================================================= */
 
 .detailsModalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
   z-index: 1000;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .detailsModal {
@@ -269,38 +355,51 @@
   max-width: 550px;
   max-height: 90vh;
   overflow-y: auto;
-  background-color: #122b19;
+  background-color: #132e1b;
   border: 1px solid rgb(219, 255, 148);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1.5rem;
-  color: rgb(219, 255, 148);
+  box-sizing: border-box;
 }
 
 .detailsHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
+  gap: 1rem;
   border-bottom: 1px solid rgb(219, 255, 148);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .detailsHeader h2 {
-  color: rgb(219, 255, 148);
   margin: 0;
-  font-size: 1.4rem;
+  color: rgb(219, 255, 148);
+  font-size: 1.35rem;
 }
 
 .closeDetailsBtn {
   background: transparent;
   border: none;
-  outline: none;
-  box-shadow: none;
   color: rgb(219, 255, 148);
   font-size: 2rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.closeDetailsBtn:hover {
+  color: white;
+}
+
+.closeDetailsBtn:focus,
+.closeDetailsBtn:focus-visible,
+.closeDetailsBtn:active {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 .detailsSection {
@@ -308,14 +407,17 @@
 }
 
 .detailsSection h3 {
+  margin: 0 0 1rem 0;
   color: rgb(219, 255, 148);
-  margin: 0 0 1rem;
-  font-size: 1.05rem;
+  font-size: 1rem;
+  border-bottom: 1px solid #1f4a2d;
+  padding-bottom: 0.5rem;
 }
 
 .detailsRow {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
   padding: 0.5rem 0;
   color: rgb(219, 255, 148);
@@ -329,18 +431,23 @@
 .shippingAddress {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
   padding: 0.5rem 0;
   color: rgb(219, 255, 148);
 }
 
 .shippingAddress > div {
-  text-align: right;
   color: yellowgreen;
+  text-align: right;
 }
 
 .shippingAddress p {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.2rem 0;
+}
+
+.shippingAddress p:last-child {
+  margin-bottom: 0;
 }
 
 .detailsProduct {
@@ -349,7 +456,7 @@
   gap: 1rem;
   padding: 0.6rem 0;
   color: rgb(219, 255, 148);
-  border-bottom: 1px solid rgba(219, 255, 148, 0.25);
+  border-bottom: 1px solid #1f4a2d;
 }
 
 .detailsProduct strong {
@@ -360,7 +467,8 @@
 .detailsTotalRow {
   display: flex;
   justify-content: space-between;
-  padding: 0.5rem 0;
+  gap: 1rem;
+  padding: 0.4rem 0;
   color: rgb(219, 255, 148);
 }
 
@@ -371,12 +479,13 @@
 .detailsGrandTotal {
   display: flex;
   justify-content: space-between;
-  padding-top: 1rem;
-  margin-top: 0.5rem;
+  gap: 1rem;
   border-top: 1px solid rgb(219, 255, 148);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
   color: rgb(219, 255, 148);
-  font-weight: 700;
   font-size: 1.1rem;
+  font-weight: bold;
 }
 
 .detailsGrandTotal strong {
@@ -385,140 +494,160 @@
 
 .closeDetailsButton {
   width: 100%;
-  background-color: #84cc16;
+  background-color: #adcc14;
   color: #0d1f12;
   border: none;
-  outline: none;
-  box-shadow: none;
   padding: 0.7rem 1rem;
-  border-radius: 4px;
+  border-radius: 5px;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 0.5rem;
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .closeDetailsButton:hover {
-  background-color: #adcc14;
+  background-color: #84cc16;
 }
 
-/* Cancel Order Modal */
+.closeDetailsButton:focus,
+.closeDetailsButton:focus-visible,
+.closeDetailsButton:active {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* =========================================================
+   CANCEL CONFIRMATION MODAL
+   ========================================================= */
+
 .cancelModalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
   z-index: 1000;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 .cancelModal {
   width: 100%;
-  max-width: 450px;
-  background-color: #122b19;
+  max-width: 400px;
+  background-color: #132e1b;
   border: 1px solid rgb(219, 255, 148);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1.5rem;
-  color: rgb(219, 255, 148);
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .cancelModal h2 {
+  margin: 0 0 0.75rem 0;
   color: rgb(219, 255, 148);
-  margin-top: 0;
+  font-size: 1.25rem;
 }
 
 .cancelModal p {
-  color: rgb(219, 255, 148);
+  margin: 0 0 1.5rem 0;
+  color: #f0fdf4;
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 
 .cancelModalButtons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .confirmCancelBtn {
-  background-color: #ef4444;
-  color: white;
+  background-color: #f87171;
+  color: #ffffff;
   border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
   font-weight: 600;
   cursor: pointer;
+  min-width: 130px;
+  outline: none;
+  box-shadow: none;
 }
 
 .confirmCancelBtn:hover {
-  background-color: #dc2626;
+  background-color: #ef4444;
 }
 
-.closeCancelBtn {
+.confirmCancelBtn:focus,
+.confirmCancelBtn:focus-visible,
+.confirmCancelBtn:active {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.keepOrderBtn {
   background-color: transparent;
   color: rgb(219, 255, 148);
   border: 1px solid rgb(219, 255, 148);
-  padding: 0.6rem 1rem;
-  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
   font-weight: 600;
   cursor: pointer;
+  min-width: 130px;
+  outline: none;
+  box-shadow: none;
 }
 
-/* Desktop */
-@media (min-width: 600px) {
-  .orderCard {
+.keepOrderBtn:hover {
+  background-color: rgba(219, 255, 148, 0.1);
+}
+
+.keepOrderBtn:focus,
+.keepOrderBtn:focus-visible,
+.keepOrderBtn:active {
+  outline: none;
+  box-shadow: none;
+}
+
+/* =========================================================
+   MOBILE RESPONSIVENESS
+   ========================================================= */
+
+@media (max-width: 480px) {
+  .cancelModal {
+    max-width: 100%;
+    padding: 1.25rem;
+  }
+
+  .cancelModal h2 {
+    font-size: 1.1rem;
+  }
+
+  .cancelModal p {
+    font-size: 0.9rem;
+  }
+
+  .cancelModalButtons {
     flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-  }
-
-  .orderLeft {
-    align-items: center;
-  }
-
-  .orderRight {
-    align-items: flex-end;
-  }
-
-  .buttonGroup {
-    justify-content: flex-end;
-  }
-}
-
-/* Mobile */
-@media (max-width: 599px) {
-  .container {
-    padding: 1.5rem 0.75rem;
-  }
-
-  .orderCard {
-    padding: 1rem;
-  }
-
-  .orderLeft {
-    gap: 0.75rem;
-  }
-
-  .productImg,
-  .noImage {
-    width: 65px;
-    height: 65px;
-  }
-
-  .orderRight {
     width: 100%;
   }
 
-  .buttonGroup {
+  .confirmCancelBtn,
+  .keepOrderBtn {
     width: 100%;
-  }
-
-  .buttonGroup button {
-    flex: 1;
-    min-width: 0;
   }
 
   .detailsModal {
-    padding: 1rem;
+    max-width: 100%;
+    max-height: 92vh;
+    padding: 1.25rem;
   }
 
   .detailsRow,
@@ -536,19 +665,5 @@
     flex-direction: column;
     gap: 0.25rem;
   }
-
-  .detailsProduct strong {
-    text-align: left;
-  }
-
-  .cancelModalButtons {
-    flex-direction: column;
-  }
-
-  .cancelModalButtons button {
-    width: 100%;
-  }
 }
-
-
 
